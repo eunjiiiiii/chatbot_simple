@@ -26,7 +26,7 @@ class DustCrawler(BaseCrawler):
             return self.request_debug(location, date)[0]
         except Exception:
             return DustAnswerer().sorry(
-                "해당 대기 오염정보는 알 수 없습니다."
+                ["해당 대기 오염정보는 알 수 없습니다."]
             )
 
     def request_dict(self, location: str, date: str):
@@ -43,7 +43,7 @@ class DustCrawler(BaseCrawler):
             return self.request_debug(location, date)[1]
         except Exception:
             return DustAnswerer().sorry(
-                "해당 대기 오염정보는 알 수 없습니다."
+                ["해당 대기 오염정보는 알 수 없습니다."]
             )
 
     def request_debug(self, location: str, date: str):

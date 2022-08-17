@@ -20,7 +20,7 @@ class WeatherCrawler(BaseCrawler):
             return self.request_debug(location, date)[0]
         except Exception:
             return WeatherAnswerer().sorry(
-                '그 날씨는 알 수가 없어요.'
+                ['그 날씨는 알 수가 없어요.']
             )
 
     def request_dict(self, location: str, date: str):
@@ -37,7 +37,7 @@ class WeatherCrawler(BaseCrawler):
             return self.request_debug(location, date)[1]
         except Exception:
             return WeatherAnswerer().sorry(
-                '그 날씨는 알 수가 없어요.'
+                ['그 날씨는 알 수가 없어요.']
             )
 
     def request_debug(self, location: str, date: str):

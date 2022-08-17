@@ -19,7 +19,7 @@ class BaseAnswerer():
                 msg += insert + ' '
             return msg
 
-    def sorry(self, text: str = None) -> str:
+    def sorry(self, text: list = None) -> list:
         """
         fallback 메시지를 출력합니다.
         :param text: fallback 메시지 (없으면 default 출력)
