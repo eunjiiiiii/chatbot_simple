@@ -228,7 +228,7 @@ class Scenario:
                     result_dict['state'] = 'REQUIRE_' + '_'.join(required_entity)
                     result_dict['answer'] = DiscomfortAnswerer().fill_slot(required_entity)
                     result_dict['current_phase'] = '/fill_slot'
-                    result_dict['next_phase'] = ['/fill_slot', '/recognize_uc']
+                    result_dict['next_phase'] = ['/fill_slot', '/recognize_uc', '/end_phase']
 
                     return result_dict
 
