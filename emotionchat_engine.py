@@ -4,7 +4,7 @@ from model.emotion.predict import IAI_EMOTION
 from model.topic.predict import IAI_TOPIC
 from model.intent_entity.intent_entity import JointIntEnt
 from model.textgeneration.predict import DialogKoGPT2
-from scenarios.default_scenario import dust, weather, physicalDiscomfort, environmentalDiscomfort,sentimentDiscomfort
+from scenarios.default_scenario import dust, weather, requestAct, physicalDiscomfort, environmentalDiscomfort, sentimentDiscomfort
 #from answerer.emotion_answerer import EmotionAnswerer
 from model.proc import DistanceClassifier, GensimEmbedder, EntityRecognizer
 from data.dataset import Dataset
@@ -68,6 +68,7 @@ class EmotionChat:
 
         self.scenarios = [weather, dust,
                           physicalDiscomfort,
+                          requestAct,
                           environmentalDiscomfort,
                           sentimentDiscomfort]
 
@@ -117,7 +118,7 @@ class EmotionChat:
             # c_ucs = False  # 이미 인식했기 때문. 재질의 필요 x => c_ucs == False
             c_ucs = False
         elif pre_phase == '':
-            # 만남인사
+            # 인사
             intent, _ = self.intent_entity_classifier(text)
             c_ucs = False
         else:
@@ -146,13 +147,13 @@ class EmotionChat:
         tokens = list(text.split(' '))
 
 
-        # 4. 만남인사, 작별인사 처리
+        # 4. 인사, 작별인사 처리
 
-        if (("안녕" in text) or (intent == '만남인사')) and pre_phase == '':
-            # 첫번째 turn이고, 만남인사일 경우
+        if (("안녕" in text) or (intent == '인사')) and pre_phase == '':
+            # 첫번째 turn이고, 인사일 경우
             return {
                 'input': tokens + pre_tokens,
-                'intent': '만남인사',
+                'intent': '인사',
                 'entity': [],
                 'state': 'SUCCESS',
                 'emotion': '',
@@ -215,7 +216,7 @@ class EmotionChat:
 
 
         # 6. 감정, 주제 라벨 & 확률값 받기
-        if intent not in ['만남인사','작별인사']:
+        if intent not in ['인사','작별인사']:
             emotion_label, emotion_probs_array, max_emotion_prob_array = self.emotion_recognizer().predict(text,
                                                                                                            wav_file)
             print('(system msg) emotion_probs_array: ' + str(emotion_probs_array[0]))
@@ -233,7 +234,7 @@ class EmotionChat:
                     max_topic_prob))
 
         ## scenario_manager() > apply_scenario()로 보내기 위해 result_dict로 변수 묶어놓음
-        if intent in ['만남인사','작별인사']:
+        if intent in ['인사','작별인사']:
             result_dict = {
                 'input': tokens,
                 'intent': intent,
@@ -376,16 +377,16 @@ class EmotionChat:
             result_dict['answer'] = config.ANSWER['goodbyemsg_chat']
             result_dict['previous_phase'] = pre_result_dict['current_phase']
             result_dict['current_phase'] = '/end_phase'
-            result_dict['next_phase'] = ['/end_phase']
+            result_dict['next_phase'] = []
 
 
         else:
             # 전체 turn 횟수가 6회가 넘지 않았을 경우
 
-            if pre_result_dict['intent'] == '만남인사' and result_dict['intent_turn_cnt'] <= 1:
-                # 만남인사 하고 딴소리 하는 경우 -> 1번까지만 봐줌
+            if pre_result_dict['intent'] == '인사' and result_dict['intent_turn_cnt'] <= 1:
+                # 인사 하고 딴소리 하는 경우 -> 1번까지만 봐줌
 
-                print("만남인사 이후 대화 오류 들어옴")
+                print("인사 이후 대화 오류 들어옴")
 
                 #return result_dict
 
@@ -400,70 +401,6 @@ class EmotionChat:
                 result_dict['current_phase'] = '/end_phase'
                 result_dict['next_phase'] = ['/end_phase']
 
-            elif (pre_result_dict['intent'] in ['마음상태호소', '부정', '긍정'] or
-                  result_dict['intent'] in ['마음상태호소', '부정', '긍정']) and result_dict['emotion_prob'][0] < config.EMOTION['threshold']:
-                # 대화 오류인데/ 이전까지의 대화가 감정대화이고, 현재 들어온 대화의 감정 확률이 threshold를 넘지 않았을 경우
-                if pre_result_dict['emotion'] == '':
-                    # 이전에 확실한 감정이 없었을 경우
-
-                    result_dict['intent'] = '마음상태호소'
-                    result_dict['emotion'] = pre_result_dict['emotion']
-                    result_dict['state'] = 'REQUIRE_EMOTION'
-                    result_dict['answer'] = EmotionAnswerer().generate_answer_under5(text)
-                    result_dict['previous_phase'] = pre_result_dict['current_phase']
-                    result_dict['current_phase'] = '/generate_emotion_chat'
-                    result_dict['next_phase'] = ['/generate_emotion_chat', '/end_phase', '/recognize_emotion_chat',
-                                                 '/recommend_contents', '/end_phase']
-
-                else:
-                    # 이전에 확실한 감정이 있었던 경우
-
-                    result_dict['emotion'] = pre_result_dict['emotion']
-                    result_dict['state'] = 'REQUIRE_CERTAIN_EMOTION'
-                    result_dict['answer'] = EmotionAnswerer().generate_answer_under5(text,
-                                                                                     result_dict['emotion'],
-                                                                                     result_dict['topics'][0])
-                    result_dict['previous_phase'] = pre_result_dict['current_phase']
-                    result_dict['current_phase'] = '/generate_emotion_chat'
-                    result_dict['next_phase'] = ['/generate_emotion_chat', '/end_phase', '/recognize_emotion_chat',
-                                                 '/recommend_contents', '/end_phase']
-
-            elif pre_result_dict['current_phase'] != '/check_uc' and \
-                    result_dict['intent'] in ['부정', '긍정', '만남인사', '욕구표출']:
-                # 이전 단계가 불궁을 인식한 단계가 아님에도 부정, 긍정, 만남인사, 욕구표출인텐트가 나오는 경우
-                if '/end_phase' in pre_result_dict['next_phase']:
-
-                    result_dict['emotion'] = pre_result_dict['emotion']
-                    result_dict['state'] = 'NOT_RECOGNIZE_UC'
-                    result_dict['answer'] = config.ANSWER['default_error_end']
-                    result_dict['previous_phase'] = pre_result_dict['current_phase']
-                    result_dict['current_phase'] = '/end_phase'
-                    result_dict['next_phase'] = ['/end_phase']
-
-                else:
-
-                    result_dict['emotion'] = pre_result_dict['emotion']
-                    result_dict['state'] = 'NOT_RECOGNIZE_UC'
-                    result_dict['answer'] = config.ANSWER['default_error']
-                    result_dict['previous_phase'] = pre_result_dict['current_phase']
-                    result_dict['current_phase'] = '/other_user'
-                    result_dict['next_phase'] = ['/induce_ucs', '/recongnize_uc_chat', '/recongnize_emotion_chat',
-                                       '/recognize_uc', '/recognize_emotion', '/recognize_topic',
-                                       '/end_phase', '/generate_emotion_chat', '/recommend_contents', '/end_phase'],
-
-            elif pre_result_dict['intent'] == '마음상태호소' and \
-                    result_dict['emotion_prob'] > config.EMOTION['threshold']:
-                # 이전 대화가 감정대화 & 현재 감정 확률이 threshold를 넘었을 경우
-
-                result_dict['emotion'] = result_dict['emotions'][0]
-                result_dict['state'] = 'REQUIRE_CERTAIN_EMOTION'
-                result_dict['answer'] = EmotionAnswerer().generate_answer_under5(text,
-                                                                                 result_dict['emotion'],
-                                                                                 result_dict['topics'][0])
-                result_dict['previous_phase'] = pre_result_dict['current_phase']
-                result_dict['current_phase'] = '/generate_emotion_chat'
-                result_dict['next_phase'] = ['/generate_emotion_chat', '/end_phase', '/recognize_emotion_chat',
-                                             '/recommend_contents', '/end_phase']
 
             else:
                 # 그 외에 에러 처리(인텐트 인식 잘못 했을 경우)
@@ -526,28 +463,35 @@ def final_emotion(dict_: dict) -> dict:
     topics = dict_['topics']
     topic_prob = dict_['topic_prob']
 
-    # emotion
-    if emotions[0] == emotions[1]:
-        max_emotion = emotions[0]
-        max_emotion_prob = max(emotion_prob)
+    if len(emotions) == 1:
+        return {emotions[0]: emotion_prob[0], topics[0]: topic_prob[0]}
+
+    elif len(emotions) == 0:
+        return {'NONE_EMOTION':0.0, 'NONE_TOPIC':0.0}
+
     else:
-        if emotion_prob[0] > emotion_prob[1]:
+        # emotion
+        if emotions[0] == emotions[1]:
             max_emotion = emotions[0]
-            max_emotion_prob = emotion_prob[0]
+            max_emotion_prob = max(emotion_prob)
         else:
-            max_emotion = emotions[1]
-            max_emotion_prob = emotion_prob[1]
+            if emotion_prob[0] > emotion_prob[1]:
+                max_emotion = emotions[0]
+                max_emotion_prob = emotion_prob[0]
+            else:
+                max_emotion = emotions[1]
+                max_emotion_prob = emotion_prob[1]
 
-    # topic
-    if topics[0] == topics[1]:
-        max_topic = topics[0]
-        max_topic_prob = max(topic_prob)
-    else:
-        if topic_prob[0] > topic_prob[1]:
+        # topic
+        if topics[0] == topics[1]:
             max_topic = topics[0]
-            max_topic_prob = topic_prob[0]
+            max_topic_prob = max(topic_prob)
         else:
-            max_topic = topics[0]
-            max_topic_prob = topic_prob[1]
+            if topic_prob[0] > topic_prob[1]:
+                max_topic = topics[0]
+                max_topic_prob = topic_prob[0]
+            else:
+                max_topic = topics[0]
+                max_topic_prob = topic_prob[1]
 
-    return {max_emotion: max_emotion_prob, max_topic: max_topic_prob}
+        return {max_emotion: max_emotion_prob, max_topic: max_topic_prob}

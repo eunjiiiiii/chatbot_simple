@@ -245,7 +245,7 @@ class Scenario:
 
     def apply_greet(self, pre_result_dict: dict, result_dict: dict) -> dict:
         """
-         만남인사 하고 딴소리 하는 경우 -> 1번까지만 봐줌
+         인사 하고 딴소리 하는 경우 -> 1번까지만 봐줌
         :param pre_result_dict: 이전 단계 result_dict
         :param result_dict: 다 안채워진 현재 단계 result_dict
         :return: 다 채워진 시나리오
@@ -254,6 +254,7 @@ class Scenario:
         # result_dict default form setting
         self.set_default_result_dict(pre_result_dict, result_dict)
 
+        result_dict['entity'] = []
         result_dict['state'] = 'GREET_UNK'
         result_dict['answer'] = config.ANSWER['default_error_welcomemsg']
         result_dict['previous_phase'] = pre_result_dict['current_phase']
@@ -310,7 +311,7 @@ class Scenario:
         # result_dict default form setting
         self.set_default_result_dict(pre_result_dict, result_dict)
 
-        if result_dict['intent_turn_cnt'] >= 2:
+        if result_dict['intent_turn_cnt'] >= 1:
 
             result_dict['state'] = 'over_turn_2'
             result_dict['answer'] = config.ANSWER['default_error_end']

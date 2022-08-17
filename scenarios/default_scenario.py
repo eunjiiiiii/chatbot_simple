@@ -40,8 +40,8 @@ sentimentDiscomfort
 -MONEY
 """
 
-from kocrawl.dust import DustCrawler
-from kocrawl.weather import WeatherCrawler
+from answerer.dust import DustCrawler
+from answerer.weather import WeatherCrawler
 from scenarios.scenario import Scenario
 from kocrawl.map import MapCrawler
 from answerer.discomfort_answerer import DiscomfortAnswerer

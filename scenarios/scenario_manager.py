@@ -150,11 +150,11 @@ class ScenarioManager:
             if result_dict['intent'] in ['부정', '긍정']:
                 return scenario.apply_np(pre_result_dict, result_dict)
             # (인사일 때)
-            elif result_dict['intent'] == '만남인사':
+            elif result_dict['intent'] == '인사':
                 # 각 intent 별 시나리오를 demo.scenarios.py에 저장해놨기 때문에 그 시나리오에 기록하면서 사용
                 print("(system msg) scenario 반복문 빠져나옴")
                 return scenario.apply_greet(pre_result_dict, result_dict)
-            # (UNK일 때)
+            # (욕구표출일 때)
             else:
                 return scenario.apply_unk(pre_result_dict, result_dict)  # apply_unk() 생성 예정
 
