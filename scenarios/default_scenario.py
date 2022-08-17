@@ -162,17 +162,8 @@ otherAct = Scenario(
 
 sentimentDiscomfort = Scenario(
     intent='마음상태호소',
-    api=config.ANSWER['induct_emotion'],
+    api=DiscomfortAnswerer().requestAct_check_form,
     scenario={
-        'EMOTION': [],
-        'PRE_EMOTION': [None],
-        'PRE_EMOTIONS': [None],
-        'MAX_EMOTION_PROB': [0],
-        'TOPIC': [],
-        'MAX_TOPIC_PROB': [0],
-        'TEXT': ['나 우울해'],
-        'TURN_CNT': [0],
-        'PRE_EMOTION_PROB': [None],
     }
 )
 

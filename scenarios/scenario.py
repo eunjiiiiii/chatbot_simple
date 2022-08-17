@@ -36,10 +36,10 @@ class Scenario:
         self.scenario, self.default = \
             self.__make_empty_dict(scenario)
 
-        '''
+
         self.api, self.dict_keys, self.params = \
             self.__check_api(api)
-        '''
+
 
         #self.emotion_answerer = emotion_answerer
 
@@ -54,11 +54,13 @@ class Scenario:
         :return: api, dict_keys, parameters
         """
 
+
         if not isinstance(api, Callable):
             raise Exception('\n\n'
                             '0반드시 api는 callable 해야합니다.\n'
                             '입력하신 api의 타입은 {}입니다.\n'
                             '가급적이면 함수 이름 자체를 입력해주세요.'.format(type(api)))
+
 
         dict_keys = list(self.scenario.keys())
         pre_defined_entity = [entity.lower() for entity in config.DATA['NER_categories']]
