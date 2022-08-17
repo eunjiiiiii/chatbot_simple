@@ -4,9 +4,8 @@ from model.emotion.predict import IAI_EMOTION
 from model.topic.predict import IAI_TOPIC
 from model.intent_entity.intent_entity import JointIntEnt
 from model.textgeneration.predict import DialogKoGPT2
-from scenarios.default_scenario import dust, weather, physicalDiscomfort, sleepProblem, moveHelp, changePosture, \
-    higieneAct, otherAct, environmentalDiscomfort, expressDesire, foodDiscomfort, sentimentDiscomfort
-from answerer.emotion_answerer import EmotionAnswerer
+from scenarios.default_scenario import dust, weather, physicalDiscomfort, environmentalDiscomfort,sentimentDiscomfort
+#from answerer.emotion_answerer import EmotionAnswerer
 from model.proc import DistanceClassifier, GensimEmbedder, EntityRecognizer
 from data.dataset import Dataset
 from model import curious_intent, embed, curious_entity
@@ -68,9 +67,9 @@ class EmotionChat:
                                                   entity_recognizer=(rcn, False))
 
         self.scenarios = [weather, dust,
-                          physicalDiscomfort, sleepProblem, moveHelp,
-                          changePosture, higieneAct, otherAct,
-                          environmentalDiscomfort, expressDesire, foodDiscomfort, sentimentDiscomfort]
+                          physicalDiscomfort,
+                          environmentalDiscomfort,
+                          sentimentDiscomfort]
 
         for scenario in self.scenarios:
             self.scenario_manager.add_scenario(scenario)
@@ -413,7 +412,7 @@ class EmotionChat:
                     result_dict['answer'] = EmotionAnswerer().generate_answer_under5(text)
                     result_dict['previous_phase'] = pre_result_dict['current_phase']
                     result_dict['current_phase'] = '/generate_emotion_chat'
-                    result_dict['next_phase'] = ['/generate_emotion_chat', '/end_chat', '/recognize_emotion_chat',
+                    result_dict['next_phase'] = ['/generate_emotion_chat', '/end_phase', '/recognize_emotion_chat',
                                                  '/recommend_contents', '/end_phase']
 
                 else:
@@ -426,13 +425,13 @@ class EmotionChat:
                                                                                      result_dict['topics'][0])
                     result_dict['previous_phase'] = pre_result_dict['current_phase']
                     result_dict['current_phase'] = '/generate_emotion_chat'
-                    result_dict['next_phase'] = ['/generate_emotion_chat', '/end_chat', '/recognize_emotion_chat',
+                    result_dict['next_phase'] = ['/generate_emotion_chat', '/end_phase', '/recognize_emotion_chat',
                                                  '/recommend_contents', '/end_phase']
 
             elif pre_result_dict['current_phase'] != '/check_uc' and \
                     result_dict['intent'] in ['부정', '긍정', '만남인사', '욕구표출']:
                 # 이전 단계가 불궁을 인식한 단계가 아님에도 부정, 긍정, 만남인사, 욕구표출인텐트가 나오는 경우
-                if '/end_chat' in pre_result_dict['next_phase']:
+                if '/end_phase' in pre_result_dict['next_phase']:
 
                     result_dict['emotion'] = pre_result_dict['emotion']
                     result_dict['state'] = 'NOT_RECOGNIZE_UC'
@@ -450,7 +449,7 @@ class EmotionChat:
                     result_dict['current_phase'] = '/other_user'
                     result_dict['next_phase'] = ['/induce_ucs', '/recongnize_uc_chat', '/recongnize_emotion_chat',
                                        '/recognize_uc', '/recognize_emotion', '/recognize_topic',
-                                       '/end_chat', '/generate_emotion_chat', '/recommend_contents', '/end_phase'],
+                                       '/end_phase', '/generate_emotion_chat', '/recommend_contents', '/end_phase'],
 
             elif pre_result_dict['intent'] == '마음상태호소' and \
                     result_dict['emotion_prob'] > config.EMOTION['threshold']:
@@ -463,7 +462,7 @@ class EmotionChat:
                                                                                  result_dict['topics'][0])
                 result_dict['previous_phase'] = pre_result_dict['current_phase']
                 result_dict['current_phase'] = '/generate_emotion_chat'
-                result_dict['next_phase'] = ['/generate_emotion_chat', '/end_chat', '/recognize_emotion_chat',
+                result_dict['next_phase'] = ['/generate_emotion_chat', '/end_phase', '/recognize_emotion_chat',
                                              '/recommend_contents', '/end_phase']
 
             else:
@@ -530,19 +529,25 @@ def final_emotion(dict_: dict) -> dict:
     # emotion
     if emotions[0] == emotions[1]:
         max_emotion = emotions[0]
+        max_emotion_prob = max(emotion_prob)
     else:
         if emotion_prob[0] > emotion_prob[1]:
+            max_emotion = emotions[0]
             max_emotion_prob = emotion_prob[0]
         else:
+            max_emotion = emotions[1]
             max_emotion_prob = emotion_prob[1]
 
     # topic
     if topics[0] == topics[1]:
         max_topic = topics[0]
+        max_topic_prob = max(topic_prob)
     else:
         if topic_prob[0] > topic_prob[1]:
+            max_topic = topics[0]
             max_topic_prob = topic_prob[0]
         else:
+            max_topic = topics[0]
             max_topic_prob = topic_prob[1]
 
     return {max_emotion: max_emotion_prob, max_topic: max_topic_prob}

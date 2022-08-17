@@ -45,16 +45,16 @@ from kocrawl.weather import WeatherCrawler
 from scenarios.scenario import Scenario
 from kocrawl.map import MapCrawler
 from answerer.discomfort_answerer import DiscomfortAnswerer
-from answerer.emotion_answerer import EmotionAnswerer
+#from answerer.emotion_answerer import EmotionAnswerer
+import emotionchat_config as config
 
 
-answerer = EmotionAnswerer()
+#answerer = EmotionAnswerer()
 
 
 weather = Scenario(
     intent='weather',
     api=WeatherCrawler().request,
-    emotion_answerer=answerer,
     scenario={
         'LOCATION': [],
         'DATE': ['오늘']
@@ -64,7 +64,6 @@ weather = Scenario(
 dust = Scenario(
     intent='dust',
     api=DustCrawler().request,
-    emotion_answerer=answerer,
     scenario={
         'LOCATION': [],
         'DATE': ['오늘']
@@ -77,61 +76,13 @@ dust = Scenario(
 requestAct = Scenario(
     intent='활동요구',
     api=DiscomfortAnswerer().requestAct_check_form,
-    emotion_answerer=answerer,
     scenario={
     }
 )
-
-physicalDiscomfort = Scenario(
-    intent='신체불편호소',
-    api=DiscomfortAnswerer().physicalDiscomfort_check_form,
-    emotion_answerer=answerer,
-    scenario={
-        'BODY': [],
-        'SYMPTOM': ['']
-    }
-)
-
-
-moveHelp = Scenario(
-    intent='이동도움요구',
-    api=DiscomfortAnswerer().moveHelp_check_form,
-    emotion_answerer=answerer,
-    scenario={
-        'PLACE': []
-    }
-)
-
-'''
-changePosture = Scenario(
-    intent='자세변경요구',
-    api=DiscomfortAnswerer().changePosture_check_form,
-    emotion_answerer=answerer,
-    scenario={
-    }
-)
-
-higieneAct = Scenario(
-    intent='위생활동요구',
-    api=DiscomfortAnswerer().higieneAct_check_form,
-    emotion_answerer=answerer,
-    scenario={
-    }
-)
-
-otherAct = Scenario(
-    intent='기타활동요구',
-    api=DiscomfortAnswerer().otherAct_check_form,
-    emotion_answerer=answerer,
-    scenario={
-    }
-)
-'''
 
 environmentalDiscomfort = Scenario(
     intent='환경불편호소',
     api=DiscomfortAnswerer().environmentalDiscomfort_check_form,
-    emotion_answerer=answerer,
     scenario={
     }
 )
@@ -164,10 +115,54 @@ foodDiscomfort = Scenario(
 )
 '''
 
+physicalDiscomfort = Scenario(
+    intent='신체불편호소',
+    api=DiscomfortAnswerer().physicalDiscomfort_check_form,
+    scenario={
+        'BODY': [],
+        'SYMPTOM': ['']
+    }
+)
+
+
+'''
+moveHelp = Scenario(
+    intent='이동도움요구',
+    api=DiscomfortAnswerer().moveHelp_check_form,
+    scenario={
+        'PLACE': []
+    }
+)
+
+changePosture = Scenario(
+    intent='자세변경요구',
+    api=DiscomfortAnswerer().changePosture_check_form,
+    emotion_answerer=answerer,
+    scenario={
+    }
+)
+
+higieneAct = Scenario(
+    intent='위생활동요구',
+    api=DiscomfortAnswerer().higieneAct_check_form,
+    emotion_answerer=answerer,
+    scenario={
+    }
+)
+
+otherAct = Scenario(
+    intent='기타활동요구',
+    api=DiscomfortAnswerer().otherAct_check_form,
+    emotion_answerer=answerer,
+    scenario={
+    }
+)
+'''
+
+
 sentimentDiscomfort = Scenario(
     intent='마음상태호소',
-    api=answerer.generate_answer_collection,
-    emotion_answerer=answerer,
+    api=config.ANSWER['induct_emotion'],
     scenario={
         'EMOTION': [],
         'PRE_EMOTION': [None],
@@ -180,5 +175,6 @@ sentimentDiscomfort = Scenario(
         'PRE_EMOTION_PROB': [None],
     }
 )
+
 
 # 감정대화는 엔티티 대신 emotion, topic을 요구함

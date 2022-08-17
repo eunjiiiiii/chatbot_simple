@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from transformers.models.distilbert.modeling_distilbert import DistilBertPreTrainedModel, DistilBertModel, DistilBertConfig
-from torchcrf import CRF
+from TorchCRF import CRF
 from .module import IntentClassifier, SlotClassifier
 
 

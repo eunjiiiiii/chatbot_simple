@@ -33,7 +33,7 @@ bot_name = '마음결'
     '/recommend_contents': (감정)컨텐츠제공,
     '/call_caregiver': (불편함)해결(간병인 호출),
     '/solve':  (궁금함)해결,
-    '/end_chat':  작별인사
+    '/end_phase':  작별인사
 """
 
 BASE = {
@@ -124,7 +124,7 @@ PHASE_INTENT = {
     '/recommend_contents': [],
     '/call_caregiver': [],
     '/solve': [],
-    '/end_chat': []
+    '/end_phase': []
 }
 
 # 해당 단계의 예상 단계를 config에 미리 저장해놓는게 나을지, 아님 이전 단계의 다음 예상 단계를 저장해놓는게 나을지
@@ -135,7 +135,7 @@ PRED_PHASE = {
                         '/fill_slot', '/end_phase'],  # ok
     '/other_user': ['/induce_ucs', '/recongnize_uc_chat', '/recongnize_emotion_chat',
                    '/recognize_uc', '/recognize_emotion', '/recognize_topic',
-                    '/end_chat', '/generate_emotion_chat', '/recommend_contents', '/end_phase'],     # ok
+                    '/end_phase', '/generate_emotion_chat', '/recommend_contents', '/end_phase'],     # ok
     # '/induce_ucs': ['other_user', '/recognize_uc_chat', '/recognize_emotion_chat',
     #                          '/recognize_uc'],
     # '/recognize_uc_chat': ['/recognize_uc', '/fill_slot'],
@@ -143,13 +143,13 @@ PRED_PHASE = {
     '/fill_slot': ['/fill_slot', '/recognize_uc', '/check_uc','/check_uc_positive', '/check_uc_negative'],   # ok
     '/recognize_uc': ['/check_uc', '/fill_slot', '/recognize_uc', '/check_uc_positive', '/check_uc_negative',
                       '/check_uc', '/end_phase'],  # ok
-    '/generate_emotion_chat': ['/generate_emotion_chat', '/end_chat', '/recognize_emotion_chat',
+    '/generate_emotion_chat': ['/generate_emotion_chat', '/end_phase', '/recognize_emotion_chat',
                             '/recommend_contents', '/end_phase'],   # ok
     # '/recognize_emotion': ['/check_uc'],
     '/check_uc': ['/check_uc_positive', '/check_uc_negative', '/check_uc', '/end_phase'],   # ok
-    '/check_uc_positive': ['/end_chat'],   # ok
-    '/check_uc_negative': ['/end_chat'],   # ok
-    # '/recommend_contents': ['/end_chat'],
+    '/check_uc_positive': ['/end_phase'],   # ok
+    '/check_uc_negative': ['/end_phase'],   # ok
+    # '/recommend_contents': ['/end_phase'],
     # '/call_caregiver': ['/end_chat'],
     # '/solve': ['/end_chat'],
     '/end_phase': ['/end_phase']   # ok

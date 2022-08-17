@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from transformers.models.albert.modeling_albert import AlbertPreTrainedModel, AlbertModel, AlbertConfig
-from torchcrf import CRF
+from TorchCRF import CRF
 from .module import IntentClassifier, SlotClassifier
 
 

@@ -18,7 +18,7 @@ from copy import deepcopy
 from random import randint
 import decorators.data as data
 import emotionchat_config as config
-from answerer.emotion_answerer import EmotionAnswerer
+#from answerer.emotion_answerer import EmotionAnswerer
 from answerer.discomfort_answerer import DiscomfortAnswerer
 import re
 
@@ -31,15 +31,17 @@ class Scenario:
     시나리오를 구분하고, 알맞은 답변을 answer에 저장한다.
     """
 
-    def __init__(self, intent, api, emotion_answerer, scenario=None):
+    def __init__(self, intent, api, scenario=None):
         self.intent = intent
         self.scenario, self.default = \
             self.__make_empty_dict(scenario)
 
+        '''
         self.api, self.dict_keys, self.params = \
             self.__check_api(api)
+        '''
 
-        self.emotion_answerer = emotion_answerer
+        #self.emotion_answerer = emotion_answerer
 
         # self.emotion_answerer = EmotionAnswerer()
 
@@ -279,17 +281,17 @@ class Scenario:
         if result_dict['intent_turn_cnt'] == 0:
             # 1-1. intent turn 수가 1회 일 경우
             result_dict['state'] = 'GENERAL_EMOTION'
-            result_dict['answer'] = self.config.ANSWER['induct_emotion']
+            result_dict['answer'] = config.ANSWER['induct_emotion']
             result_dict['current_phase'] = '/induct_emotion'
-            result_dict['next_phase'] = ['/recommend_contents']
+            result_dict['next_phase'] = ['/end_phase']
             return result_dict
 
         elif result_dict['intent_turn_cnt'] == 1:
             # 1-2. intent turn 수가 2회일 경우
             result_dict['state'] = 'CERTAIN_EMOTION'
-            result_dict['answer'] = self.config.ANSWER['default_contents']
-            result_dict['current_phase'] = '/recommend_contents'
-            result_dict['next_phase'] = ['/end_chat']
+            result_dict['answer'] = config.ANSWER['default_contents']
+            result_dict['current_phase'] = '/end_phase'
+            result_dict['next_phase'] = ['/end_phase']
 
             return result_dict
 

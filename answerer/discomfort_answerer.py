@@ -38,6 +38,28 @@ class DiscomfortAnswerer:
 
         return msg
 
+    def requestAct_check_form(self) -> str:
+        """
+        활동요구 재질의 출력 포맷
+        :return: 출력 메시지
+        """
+        msg = ['도움이 필요하신거죠? \n']
+        msg += config.ANSWER['call_caregiver']
+
+        return msg
+
+    def environmentalDiscomfort_check_form(self) -> str:
+        """
+        환경 불편 호소 재질의 출력 포맷
+        :param place: 장소
+        :return: 출력 메시지
+        """
+
+        msg = ['많이 불편하신가요? \n']
+        msg += config.ANSWER['call_caregiver']
+
+        return msg
+
 
     def physicalDiscomfort_check_form(self, body: str, symptom: str) -> str:
         """
@@ -52,108 +74,6 @@ class DiscomfortAnswerer:
             msg += [str(symptom + self.yi(symptom) + ' 있으시군요.\n')]
         if body != '':
             msg += [str(body + self.yi(symptom) + ' 많이 아프신가요?\n')]
-        msg += config.ANSWER['call_caregiver']
-
-        return msg
-
-    '''
-    def physicalDiscomfort_check_form(self, body: str) -> str:
-        """
-        신체 불편 호소 재질의 출력 포맷
-        :param body: 신체 부위
-        :return: 출력 메시지
-        """
-
-        msg = '{body} 많이 아프신가요?\n'.format(body=body)
-        msg += config.ANSWER['call_caregiver']
-
-        return msg
-    '''
-
-    def sleepProblem_check_form(self) -> str:
-        """
-        수면 문제 호소 재질의 출력 포맷
-        :return: 출력 메시지
-        """
-        msg = ['수면문제는 정말 일상생활에 큰 영향을 주는 것 같아요. 그동안 많이 피곤하셨겠어요.\n']
-        msg += config.ANSWER['call_caregiver']
-
-        return msg
-
-
-    def moveHelp_check_form(self, place: str) -> str:
-        """
-        이동 도움 요구 재질의 출력 포맷
-        :param place: 장소
-        :return: 출력 메시지
-        """
-        msg = [str(place + '에 가고 싶으신거죠? \n')]
-        msg += config.ANSWER['call_caregiver']
-
-        return msg
-
-
-    def changePosture_check_form(self) -> str:
-        """
-        자세 변경 도움 요구 재질의 출력 포맷
-        :return: 출력 메시지
-        """
-        msg = ['자세가 많이 불편하신거죠?\n']
-        msg += config.ANSWER['call_caregiver']
-
-        return msg
-
-
-    def higieneAct_check_form(self) -> str:
-        """
-        위생 활동 도움 요구 재질의 출력 포맷
-        :return: 출력 메시지
-        """
-        msg = ['위생활동 도움을 요청하신거죠? \n']
-        msg += config.ANSWER['call_caregiver']
-
-        return msg
-
-
-    def otherAct_check_form(self) -> str:
-        """
-        기타 활동 도움 요구 재질의 출력 포맷
-        :return: 출력 메시지+
-        """
-        msg = ['제가 도와드릴까요? \n']
-
-        return msg
-
-    def environmentalDiscomfort_check_form(self, place: str) -> str:
-        """
-        환경 불편 호소 재질의 출력 포맷
-        :param place: 장소
-        :return: 출력 메시지
-        """
-
-        msg = []
-        if len(place) > 0:
-            msg = [str(place + '의 환경이 불편하신거죠? \n')]
-        msg += config.ANSWER['call_caregiver']
-
-        return msg
-
-    def expressDesire_check_form(self) -> str:
-        """
-        욕구 표출 재질의 출력 포맷
-        :return: 출력 메시지
-        """
-        msg = ['제가 도와드릴까요? \n']
-
-        return msg
-
-    def foodDiscomfort_check_form(self, food: str) -> str:
-        """
-        음식 불편 호소 재질의 출력 포맷
-        :param food: 음식
-        :return: 출력 메시지
-        """
-        msg = [str(food + self.yi(food) + ' 문제가 있는거죠? \n')]
         msg += config.ANSWER['call_caregiver']
 
         return msg

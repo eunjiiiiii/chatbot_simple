@@ -6,7 +6,7 @@
   "attention_probs_dropout_prob": 0.1,
   "author": "Heewon Jeon(madjakarta@gmail.com)",
   "classifier_dropout": null,
-  "finetuning_task": "new_data",
+  "finetuning_task": "intent_7_data",
   "gradient_checkpointing": false,
   "hidden_act": "gelu",
   "hidden_dropout_prob": 0.1,
