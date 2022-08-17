@@ -175,6 +175,7 @@ class Scenario:
         result_dict['emotion_prob'] = result_dict['emotion_prob'] + pre_result_dict['emotion_prob']
         result_dict['topics'] = result_dict['topics'] + pre_result_dict['topics']
         result_dict['topic_prob'] = result_dict['topic_prob'] + pre_result_dict['topic_prob']
+        result_dict['previous_phase'] = pre_result_dict['current_phase']
 
     def apply(self, pre_result_dict: dict, result_dict: dict) -> dict:
         """
@@ -198,159 +199,44 @@ class Scenario:
         if len(required_entity) == 0:
             # entity가 채워진 경우
 
-            result_dict['state'] = 'SUCCESS'
+            result_dict['state'] = 'SUCCESS_UC'
             result_dict['answer'] = self.api(*result.values())
-            result_dict['previous_phase'] = pre_result_dict['current_phase']
-            result_dict['current_phase'] = '/check_ucs'
-            result_dict['next_phase'] = ['/check_ucs_positive', '/check_ucs_negative', '/check_ucs', '/end_phase']
+            result_dict['current_phase'] = '/end_phase'
+            result_dict['next_phase'] = []
 
             return result_dict
 
-            '''
-            return {
-                'input': result_dict['input'] + pre_result_dict['input'],
-                'intent': result_dict['intent'],
-                'entity': result_dict['entity'],
-                'emotion': pre_result_dict['emotion'],
-                'emotions': result_dict['emotions'] + pre_result_dict['emotions'],
-                'emotion_prob': result_dict['emotion_prob'] + pre_result_dict['emotion_prob'],
-                'topics': result_dict['topics'] + pre_result_dict['topics'],  # 'topics': [topic] + pre_topics,
-                'topic_prob': result_dict['topic_prob'] + pre_result_dict['topic_prob'],
-                'state': 'SUCCESS',
-                'answer': self.api(*result.values()),
-                'previous_phase': ['/recognize_uc_chat', '/recognize_uc'],
-                'current_phase': '/check_ucs',
-                'next_phase': ['/check_ucs_positive', '/check_ucs_negative', '/check_ucs', '/end_phase'],
-                'intent_turn_cnt': result_dict['intent_turn_cnt']
-            }
-            '''
-
         else:
             # entity가 채워지지 않은 경우
-            if result_dict['intent_turn_cnt'] < 4:
-                # entity가 채워지지 않은 경우 & turn_cnt < 4
+            if result_dict['intent_turn_cnt'] < 2:
+                # entity가 채워지지 않은 경우 & intent turn 수 1-2회인 경우
                 if len(pre_result_dict['entity']) != 0:
                     # 이전에 채워진 엔티티가 있으면
-
-                    result_dict['state'] = 'SUCCESS'
+                    result_dict['state'] = 'SUCCESS_UC'
                     result_dict['answer'] = self.api(*result.values())
-                    result_dict['previous_phase'] = pre_result_dict['current_phase']
-                    result_dict['current_phase'] = '/check_ucs'
-                    result_dict['next_phase'] = ['/check_ucs_positive', '/check_ucs_negative', '/check_ucs', '/end_phase']
+                    result_dict['current_phase'] = '/end_phase'
+                    result_dict['next_phase'] = []
 
                     return result_dict
-
-                    '''
-                    return {
-                        'input': result_dict['input'] + pre_result_dict['input'],
-                        'intent': result_dict['intent'],
-                        'entity': result_dict['entity'],
-                        'emotion': pre_result_dict['emotion'],
-                        'emotions': result_dict['emotions'] + pre_result_dict['emotions'],
-                        'emotion_prob': result_dict['emotion_prob'] + pre_result_dict['emotion_prob'],
-                        'topics': result_dict['topics'] + pre_result_dict['topics'],  # 'topics': [topic] + pre_topics,
-                        'topic_prob': result_dict['topic_prob'] + pre_result_dict['topic_prob'],
-                        'state': 'SUCCESS',
-                        'answer': self.api(*result.values()),   # 수정!!
-                        'previous_phase': ['/recognize_uc_chat', '/recognize_uc'],
-                        'current_phase': '/check_ucs',
-                        'next_phase': ['/check_ucs_positive', '/check_ucs_negative', '/check_ucs', '/end_phase'],
-                        'intent_turn_cnt': result_dict['intent_turn_cnt']
-                    }
-                    '''
-
+                
                 else:
                     # 이전에 채워진 엔티티가 없으면
-
                     result_dict['state'] = 'REQUIRE_' + '_'.join(required_entity)
                     result_dict['answer'] = DiscomfortAnswerer().fill_slot(required_entity)
-                    result_dict['previous_phase'] = pre_result_dict['current_phase']
                     result_dict['current_phase'] = '/fill_slot'
-                    result_dict['next_phase'] = ['/fill_slot', '/recognize_uc', '/check_ucs','/check_ucs_positive', '/check_ucs_negative']
+                    result_dict['next_phase'] = ['/fill_slot', '/recognize_uc']
 
                     return result_dict
-
-                    '''
-                    return {
-                        'input': result_dict['input'] + pre_result_dict['input'],
-                        'intent': result_dict['intent'],
-                        'entity': result_dict['entity'],
-                        'emotion': pre_result_dict['emotion'],
-                        'emotions': result_dict['emotions'] + pre_result_dict['emotions'],
-                        'emotion_prob': result_dict['emotion_prob'] + pre_result_dict['emotion_prob'],
-                        'topics': result_dict['topics'] + pre_result_dict['topics'],  # 'topics': [topic] + pre_topics,
-                        'topic_prob': result_dict['topic_prob'] + pre_result_dict['topic_prob'],
-                        'state': 'REQUIRE_' + '_'.join(required_entity),
-                        'answer': DiscomfortAnswerer().fill_slot(required_entity),  # 수정
-                        'previous_phase': ['/recognize_uc_chat', '/fill_slot'],
-                        'current_phase': '/fill_slot',
-                        'next_phase': ['/fill_slot', '/recognize_uc', '/check_ucs','/check_ucs_positive', '/check_ucs_negative'],
-                        'intent_turn_cnt': result_dict['intent_turn_cnt']
-                    }
-                    '''
 
             else:
-                # entity가 채워지지 않은 경우 & turn_cnt >= 4
-                if len(pre_result_dict['pre_entity']) == 0:
+                # entity가 채워지지 않은 경우 & turn_cnt >= 2
+                result_dict['state'] = 'FAIL_FILLING_SLOT'
+                result_dict['answer'] = config.ANSWER['default_error_ucs']
+                result_dict['current_phase'] = '/end_phase'
+                result_dict['next_phase'] = []
 
-                    result_dict['state'] = 'FAIL_FILLING_SLOT'
-                    result_dict['answer'] = config.ANSWER['default_error_ucs']
-                    result_dict['previous_phase'] = pre_result_dict['current_phase']
-                    result_dict['current_phase'] = '/recognize_uc'
-                    result_dict['next_phase'] = ['/check_ucs', '/fill_slot', '/recognize_uc', '/check_ucs_positive',
-                                                 '/check_ucs_negative','/check_ucs', '/end_phase']
+                return result_dict
 
-                    return result_dict
-
-                    '''
-                    return {
-                        'input': result_dict['input'] + pre_result_dict['input'],
-                        'intent': result_dict['intent'],
-                        'entity': result_dict['entity'],
-                        'emotion': pre_result_dict['emotion'],
-                        'emotions': result_dict['emotions'] + pre_result_dict['emotions'],
-                        'emotion_prob': result_dict['emotion_prob'] + pre_result_dict['emotion_prob'],
-                        'topics': result_dict['topics'] + pre_result_dict['topics'],  # 'topics': [topic] + pre_topics,
-                        'topic_prob': result_dict['topic_prob'] + pre_result_dict['topic_prob'],
-                        'state': 'FAIL_FILLING_SLOT',
-                        'answer': config.ANSWER['default_error_ucs'],
-                        'previous_phase': ['/fill_slot', '/welcomemsg_chat', '/other_user',
-                                           '/induce_ucs', '/recognize_uc_chat'],
-                        'current_phase': '/recognize_uc',
-                        'next_phase': ['/check_ucs', '/fill_slot', '/recognize_uc', '/check_ucs_positive', '/check_ucs_negative','/check_ucs', '/end_phase'],
-                        'intent_turn_cnt': result_dict['intent_turn_cnt']
-                    }
-                    '''
-
-                else:
-
-                    result_dict['state'] = 'FAIL_FILLING_SLOT'
-                    result_dict['answer'] = config.ANSWER['default_error_ucs']
-                    result_dict['previous_phase'] = pre_result_dict['current_phase']
-                    result_dict['current_phase'] = '/recognize_uc'
-                    result_dict['next_phase'] = ['/check_ucs']
-
-                    return result_dict
-
-                    '''
-                    return {
-                        'input': result_dict['input'] + pre_result_dict['input'],
-                        'intent': result_dict['intent'],
-                        'entity': result_dict['entity'],
-                        'emotion': pre_result_dict['emotion'],
-                        'emotions': result_dict['emotions'] + pre_result_dict['emotions'],
-                        'emotion_prob': result_dict['emotion_prob'] + pre_result_dict['emotion_prob'],
-                        'topics': result_dict['topics'] + pre_result_dict['topics'],  # 'topics': [topic] + pre_topics,
-                        'topic_prob': result_dict['topic_prob'] + pre_result_dict['topic_prob'],
-                        'state': 'FAIL_FILLING_SLOT',
-                        'answer': config.ANSWER['default_error_ucs'],
-                        'previous_phase': ['/fill_slot', '/welcomemsg_chat', '/other_user',
-                                           '/induce_ucs', '/recognize_uc_chat'],
-                        'current_phase': '/recognize_uc',
-                        'next_phase': ['/check_ucs'],
-                        'intent_turn_cnt': result_dict['intent_turn_cnt']
-                    }
-                    '''
 
 
     def apply_greet(self, pre_result_dict: dict, result_dict: dict) -> dict:
@@ -369,162 +255,11 @@ class Scenario:
         result_dict['previous_phase'] = pre_result_dict['current_phase']
         result_dict['current_phase'] = '/welcomemsg_chat'
         result_dict['next_phase'] = ['/other_user', '/recognize_uc_chat', '/recognize_emotion_chat', '/recognize_uc',
-                               '/recognize_emotion', '/recognize_topic', '/generate_emotion_chat', '/check_ucs',
+                               '/recognize_emotion', '/recognize_topic', '/generate_emotion_chat', '/check_uc',
                                '/fill_slot', '/end_phase']
 
         return result_dict
 
-        '''
-        return {
-            'input': result_dict['input'] + pre_result_dict['input'],
-            'intent': result_dict['intent'],
-            'entity': result_dict['entity'],
-            'emotion': pre_result_dict['emotion'],
-            'emotions': result_dict['emotions'] + pre_result_dict['emotions'],
-            'emotion_prob': result_dict['emotion_prob'] + pre_result_dict['emotion_prob'],
-            'topics': result_dict['topics'] + pre_result_dict['topics'],  # 'topics': [topic] + pre_topics,
-            'topic_prob': result_dict['topic_prob'] + pre_result_dict['topic_prob'],
-            'state': 'GREET',
-            'answer': config.ANSWER['welcomemsg_chat'],
-            'previous_phase': [],
-            'current_phase': '/welcomemsg_chat',
-            'next_phase': ['/other_user', '/recognize_uc_chat', '/recognize_emotion_chat', '/recognize_uc', '/generate_emotion_chat', '/check_ucs'],
-            'intent_turn_cnt': result_dict['intent_turn_cnt']
-        }
-        '''
-
-    def apply_np(self, pre_result_dict: dict, result_dict:dict) -> dict:
-        """
-        재질의에 대한 답변 구분 함수
-        :param pre_result_dict: 이전 단계 result_dict
-        :param result_dict: 다 안채워진 현재 단계 result_dict
-        :return: 다 채워진 시나리오
-        """
-
-        # result_dict default form setting
-        self.set_default_result_dict(pre_result_dict, result_dict)
-
-        if result_dict['intent'] == '부정':
-
-            result_dict['state'] = 'NEGATIVE'
-            result_dict['answer'] = config.ANSWER['default_error_end_n']
-            result_dict['previous_phase'] = pre_result_dict['current_phase']
-            result_dict['current_phase'] = '/end_phase'
-            result_dict['next_phase'] = ['/end_phase']
-
-            return result_dict
-
-            '''
-            return {
-                'input': result_dict['inputs'] + pre_result_dict['inputs'],
-                'intent': result_dict['intent'],
-                'entity': result_dict['entity'],
-                'emotion': pre_result_dict['emotion'],
-                'emotions': result_dict['emotions'] + pre_result_dict['emotions'],
-                'emotion_prob': result_dict['emotion_prob'] + pre_result_dict['emotion_prob'],
-                'topics': result_dict['topics'] + pre_result_dict['topics'],  # 'topics': [topic] + pre_topics,
-                'topic_prob': result_dict['topic_prob'] + pre_result_dict['topic_prob'],
-                'state': 'NEGATIVE',
-                'answer': config.ANSWER['default_error_end_n'],
-                'previous_phase': [],
-                'current_phase': '/end_phase',
-                'next_phase': ['/end_phase'],
-                'intent_turn_cnt': result_dict['intent_turn_cnt']
-            }
-            '''
-
-        else:
-            # 긍정
-            if pre_result_dict['intent'] == '마음상태호소':
-
-                result_dict['emotion'] = pre_result_dict['emotion']
-                result_dict['state'] = 'POSITIVE'
-                result_dict['answer'] = config.ANSWER['default_contents']
-                result_dict['previous_phase'] = pre_result_dict['current_phase']
-                result_dict['current_phase'] = '/end_phase'
-                result_dict['next_phase'] = ['/end_phase']
-
-                return result_dict
-
-                '''
-                return {
-                    'input': result_dict['inputs'] + pre_result_dict['inputs'],
-                    'intent': result_dict['intent'],
-                    'entity': result_dict['entity'],
-                    'emotion': pre_result_dict['emotion'],
-                    'emotions': result_dict['emotions'] + pre_result_dict['emotions'],
-                    'emotion_prob': result_dict['emotion_prob'] + pre_result_dict['emotion_prob'],
-                    'topics': result_dict['topics'] + pre_result_dict['topics'],  # 'topics': [topic] + pre_topics,
-                    'topic_prob': result_dict['topic_prob'] + pre_result_dict['topic_prob'],
-                    'state': 'POSITIVE',
-                    'answer': config.ANSWER['default_contents'],
-                    'previous_phase': '',
-                    'current_phase': '/check_ucs_positive',
-                    'next_phase': ['/end_chat'],
-                    'intent_turn_cnt': result_dict['intent_turn_cnt']
-                }
-                '''
-
-            elif pre_result_dict['intent'] in config.SORT_INTENT['PHISICALDISCOMFORT']:
-
-                result_dict['emotion'] = pre_result_dict['emotion']
-                result_dict['state'] = 'POSITIVE'
-                result_dict['answer'] = config.ANSWER['call_caregiver']
-                result_dict['previous_phase'] = pre_result_dict['current_phase']
-                result_dict['current_phase'] = '/end_phase'
-                result_dict['next_phase'] = ['/end_phase']
-
-                return result_dict
-
-                '''
-                return {
-                    'input': result_dict['inputs'] + pre_result_dict['inputs'],
-                    'intent': result_dict['intent'],
-                    'entity': result_dict['entity'],
-                    'emotion': pre_result_dict['emotion'],
-                    'emotions': result_dict['emotions'] + pre_result_dict['emotions'],
-                    'emotion_prob': result_dict['emotion_prob'] + pre_result_dict['emotion_prob'],
-                    'topics': result_dict['topics'] + pre_result_dict['topics'],  # 'topics': [topic] + pre_topics,
-                    'topic_prob': result_dict['topic_prob'] + pre_result_dict['topic_prob'],
-                    'state': 'POSITIVE',
-                    'answer': config.ANSWER['call_caregiver'],
-                    'previous_phase': '',
-                    'current_phase': '/check_ucs_positive',
-                    'next_phase': ['/end_chat'],
-                    'intent_turn_cnt': intent_turn_cnt
-                }
-                '''
-
-            else:
-
-                result_dict['emotion'] = pre_result_dict['emotion']
-                result_dict['state'] = 'UNK'
-                result_dict['answer'] = ['그러시군요. '] + config.ANSWER['default_error_end']
-                result_dict['previous_phase'] = pre_result_dict['current_phase']
-                result_dict['current_phase'] = '/end_phase'
-                result_dict['next_phase'] = ['/end_phase']
-
-                return result_dict
-
-                '''
-                return {
-                    'input': tokens + pre_tokens,
-                    'intent': intent,
-                    'entity': [],
-                    'state': 'SUCCESS',
-                    'emotion': '',
-                    'emotions': pre_emotions,
-                    'emotion_prob': pre_emotion_prob,
-                    #'topic': '',
-                    'topics': pre_topics,
-                    'topic_prob': pre_topic_prob,
-                    'answer': '그러시군요. ' + config.ANSWER['default_error_end'],
-                    'previous_phase': '',
-                    'current_phase': '/end_phase',
-                    'next_phase': ['/end_phase'],
-                    'intent_turn_cnt': intent_turn_cnt
-                }
-                '''
 
     def apply_emotion(self, pre_result_dict: dict, result_dict: dict, text: str, turn_cnt: int) -> dict:
 
@@ -540,410 +275,25 @@ class Scenario:
         # result_dict default form setting
         self.set_default_result_dict(pre_result_dict, result_dict)
 
+        #if turn_cnt < 5:
+        if result_dict['intent_turn_cnt'] == 0:
+            # 1-1. intent turn 수가 1회 일 경우
+            result_dict['state'] = 'GENERAL_EMOTION'
+            result_dict['answer'] = self.config.ANSWER['induct_emotion']
+            result_dict['current_phase'] = '/induct_emotion'
+            result_dict['next_phase'] = ['/recommend_contents']
+            return result_dict
 
-        if turn_cnt < 5:
-            if result_dict['intent_turn_cnt'] <= 1:
-                # 1-1. turn 수가 2회 이하일 경우
-                if result_dict['emotion_prob'][0] < config.EMOTION['threshold']:
-                    # 2-1. 감정확률 < threshold일 경우
-                    if pre_result_dict['emotion'] == '':
-                        # 3-1. 이전에 확실한 감정이 없었을 경우
+        elif result_dict['intent_turn_cnt'] == 1:
+            # 1-2. intent turn 수가 2회일 경우
+            result_dict['state'] = 'CERTAIN_EMOTION'
+            result_dict['answer'] = self.config.ANSWER['default_contents']
+            result_dict['current_phase'] = '/recommend_contents'
+            result_dict['next_phase'] = ['/end_chat']
 
-                        result_dict['state'] = 'REQUIRE_CERTAIN_EMOTION'
-                        result_dict['answer'] = self.emotion_answerer.generate_answer_under5(text)
-                        result_dict['previous_phase'] = pre_result_dict['current_phase']
-                        result_dict['current_phase'] = '/generate_emotion_chat'
-                        result_dict['next_phase'] = ['/generate_emotion_chat', '/end_chat', '/recognize_emotion_chat',
-                                                     '/recommend_contents', '/end_phase']
-                        return result_dict
+            return result_dict
 
-                        '''
-                        return {
-                            'input': tokens,
-                            'intent': self.intent,
-                            'entity': [],
-                            'state': 'SUCCESS',
-                            'emotion': '',
-                            'emotions': [emotion] + pre_emotions,
-                            'emotion_prob': [max_emotion_prob] + pre_emotion_prob,
-                            #'topic': topic,
-                            'topics': [topic] + pre_topics,
-                            'topic_prob': [max_topic_prob] + pre_topic_prob,
-                            'answer': self.emotion_answerer.generate_answer_under5(text),
-                            'previous_phase': ['/generate_emotion_chat'],
-                            'current_phase': '/generate_emotion_chat',
-                            'next_phase': ['/generate_emotion_chat', '/end_chat', '/recognize_emotion_chat', '/recommend_contents', '/end_phase'],
-                            'intent_turn_cnt': intent_turn_cnt
-                        }
-                        '''
 
-                    else:
-                        # 3-2. 이전에 확실한 감정이 있었을 경우
-
-                        result_dict['emotion'] = pre_result_dict['emotion']
-                        result_dict['state'] = 'SUCCESS'
-                        result_dict['answer'] = self.emotion_answerer.generate_answer_under5(text)
-                        result_dict['previous_phase'] = pre_result_dict['current_phase']
-                        result_dict['current_phase'] = '/generate_emotion_chat'
-                        result_dict['next_phase'] = ['/generate_emotion_chat', '/end_chat', '/recognize_emotion_chat',
-                                                     '/recommend_contents', '/end_phase']
-
-                        return result_dict
-                        '''
-                        return{
-                            'input': tokens,
-                            'intent': self.intent,
-                            'entity': [],
-                            'state': 'SUCCESS',
-                            'emotion': pre_emotion,
-                            'emotions': [emotion] + pre_emotions,
-                            'emotion_prob': [max_emotion_prob] + pre_emotion_prob,
-                            #'topic': topic,
-                            'topics': [topic] + pre_topics,
-                            'topic_prob': [max_topic_prob] + pre_topic_prob,
-                            'answer': self.emotion_answerer.generate_answer_under5(text),
-                            'previous_phase': ['/generate_emotion_chat'],
-                            'current_phase': '/generate_emotion_chat',
-                            'next_phase': ['/generate_emotion_chat', '/end_chat', '/recognize_emotion_chat', '/recommend_contents', '/end_phase'],
-                            'intent_turn_cnt': intent_turn_cnt
-                        }
-                        '''
-
-                else:
-                    # 2-2. 감정확률 >= threshold 일 경우
-
-                    result_dict['emotion'] = result_dict['emotions'][0]
-                    result_dict['state'] = 'SUCCESS'
-                    result_dict['answer'] = self.emotion_answerer.generate_answer_under5(text)
-                    result_dict['previous_phase'] = pre_result_dict['current_phase']
-                    result_dict['current_phase'] = '/generate_emotion_chat'
-                    result_dict['next_phase'] = ['/generate_emotion_chat', '/end_chat', '/recognize_emotion_chat',
-                                                 '/recommend_contents', '/end_phase']
-
-                    return result_dict
-                    '''
-                    return {
-                        'input': tokens,
-                        'intent': self.intent,
-                        'entity': [],
-                        'state': 'SUCCESS',
-                        'emotion': emotion,
-                        'emotions': [emotion] + pre_emotions,
-                        'emotion_prob': [max_emotion_prob] + pre_emotion_prob,
-                        #'topic': topic,
-                        'topics': [topic] + pre_topics,
-                        'topic_prob': [max_topic_prob] + pre_topic_prob,
-                        'answer': self.emotion_answerer.generate_answer_under5(text),
-                        'previous_phase': ['/generate_emotion_chat'],
-                        'current_phase': '/generate_emotion_chat',
-                        'next_phase': ['/generate_emotion_chat', '/end_chat', '/recognize_emotion_chat', '/recommend_contents', '/end_phase'],
-                        'intent_turn_cnt': intent_turn_cnt
-                    }
-                    '''
-
-            elif 2 <= result_dict['intent_turn_cnt'] <= 4:
-                # 1-2. turn 수가 3회 이상 5회 이하일 경우
-                if result_dict['emotion_prob'][0] < config.EMOTION['threshold']:
-                    # 2-1. 감정확률 < threshold일 경우
-                    if pre_result_dict['emotion'] == '':
-                        # 3-1. 이전에 확실한 감정이 없었을 경우
-
-                        result_dict['state'] = 'REQUIRE_CERTAIN_EMOTION'
-                        result_dict['answer'] = self.emotion_answerer.generate_answer_under5(text)
-                        result_dict['previous_phase'] = pre_result_dict['current_phase']
-                        result_dict['current_phase'] = '/generate_emotion_chat'
-                        result_dict['next_phase'] = ['/generate_emotion_chat', '/end_chat', '/recognize_emotion_chat',
-                                                     '/recommend_contents', '/end_phase']
-
-                        return result_dict
-                        '''
-                        return {
-                            'input': tokens,
-                            'intent': self.intent,
-                            'entity': [],
-                            'state': 'SUCCESS',
-                            'emotion': '',
-                            'emotions': [emotion] + pre_emotions,
-                            'emotion_prob': [max_emotion_prob] + pre_emotion_prob,
-                            #'topic': topic,
-                            'topics': [topic] + pre_topics,
-                            'topic_prob': [max_topic_prob] + pre_topic_prob,
-                            'answer': self.emotion_answerer.generate_answer_under5(text),
-                            'previous_phase': ['/generate_emotion_chat'],
-                            'current_phase': '/generate_emotion_chat',
-                            'next_phase': ['/generate_emotion_chat', '/end_chat', '/recognize_emotion_chat',
-                                           '/recommend_contents', '/end_phase'],
-                            'intent_turn_cnt': intent_turn_cnt
-                        }
-                        '''
-
-                    else:
-                        # 3-2. 이전에 확실한 감정이 있었을 경우
-
-                        result_dict['emotion'] = pre_result_dict['emotion']
-                        result_dict['state'] = 'SUCCESS'
-                        result_dict['answer'] = self.emotion_answerer.contents_answer(text,
-                                                                                  result_dict['emotion'],
-                                                                                  result_dict['topics'][0])
-                        result_dict['previous_phase'] = pre_result_dict['current_phase']
-                        result_dict['current_phase'] = '/end_phase'
-                        result_dict['next_phase'] = ['/end_phase']
-
-                        return result_dict
-                        '''
-                        return {
-                            'input': tokens,
-                            'intent': self.intent,
-                            'entity': [],
-                            'state': 'SUCCESS',
-                            'emotion': pre_emotion,
-                            'emotions': [emotion] + pre_emotions,
-                            'emotion_prob': [max_emotion_prob] + pre_emotion_prob,
-                            #'topic': topic,
-                            'topics': [topic] + pre_topics,
-                            'topic_prob': [max_topic_prob] + pre_topic_prob,
-                            'answer': self.emotion_answerer.contents_answer(text, emotion, topic),
-                            'previous_phase': ['/generate_emotion_chat'],
-                            'current_phase': '/end_phase',
-                            'next_phase': ['/end_phase'],
-                            'intent_turn_cnt': intent_turn_cnt
-                        }
-                        '''
-
-                else:
-                    # 2-2. 감정확률 >= threshold 일 경우
-                    if pre_result_dict['emotion'] == '':
-                        # 3-1. 이전에 확실한 감정이 없었을 경우
-
-                        result_dict['emotion'] = result_dict['emotions'][0]
-                        result_dict['state'] = 'SUCCESS'
-                        result_dict['answer'] = self.emotion_answerer.contents_answer(text,
-                                                                                  result_dict['emotions'][0],
-                                                                                  result_dict['topics'][0])
-                        result_dict['previous_phase'] = pre_result_dict['current_phase']
-                        result_dict['current_phase'] = '/end_phase'
-                        result_dict['next_phase'] = ['/end_phase']
-
-                        return result_dict
-                        '''
-                        return {
-                            'input': tokens,
-                            'intent': self.intent,
-                            'entity': [],
-                            'state': 'SUCCESS',
-                            'emotion': emotion,
-                            'emotions': [emotion] + pre_emotions,
-                            'emotion_prob': [max_emotion_prob] + pre_emotion_prob,
-                            #'topic': topic,
-                            'topics': [topic] + pre_topics,
-                            'topic_prob': [max_topic_prob] + pre_topic_prob,
-                            'answer': self.emotion_answerer.contents_answer(text, emotion, topic),
-                            'previous_phase': ['/generate_emotion_chat'],
-                            'current_phase': '/end_phase',
-                            'next_phase': ['/end_phase'],
-                            'intent_turn_cnt': intent_turn_cnt
-                        }
-                        '''
-
-                    else:
-                        # 3-2. 이전에 확실한 감정이 있었을 경우
-
-                        result_dict['emotion'] = result_dict['emotions'][0]
-                        result_dict['state'] = 'SUCCESS'
-                        result_dict['answer'] = self.emotion_answerer.contents_answer(text,
-                                                                                  result_dict['emotion'],
-                                                                                  result_dict['topics'][0])
-                        result_dict['previous_phase'] = pre_result_dict['current_phase']
-                        result_dict['current_phase'] = '/end_phase'
-                        result_dict['next_phase'] = ['/end_phase']
-
-                        return result_dict
-                        '''
-                        return {
-                            'input': tokens,
-                            'intent': self.intent,
-                            'entity': [],
-                            'state': 'SUCCESS',
-                            'emotion': emotion,
-                            'emotions': [emotion] + pre_emotions,
-                            'emotion_prob': [max_emotion_prob] + pre_emotion_prob,
-                            #'topic': topic,
-                            'topics': [topic] + pre_topics,
-                            'topic_prob': [max_topic_prob] + pre_topic_prob,
-                            'answer': self.emotion_answerer.contents_answer(text, emotion, topic),
-                            'previous_phase': ['/generate_emotion_chat'],
-                            'current_phase': '/end_phase',
-                            'next_phase': ['/end_phase'],
-                            'intent_turn_cnt': intent_turn_cnt
-                        }
-                        '''
-
-            else:
-                # 1-3. turn 수가 5회 이상일 경우
-                if result_dict['emotion_prob'][0] < config.EMOTION['threshold']:
-                    # 2-1. 감정확률 < threshold일 경우
-
-                    result_dict['emotion'] = pre_result_dict['emotion']
-                    result_dict['state'] = 'FAIL'
-                    result_dict['answer'] = self.emotion_answerer.generate_answer_over5(pre_result_dict['emotions'])
-                    result_dict['previous_phase'] = pre_result_dict['current_phase']
-                    result_dict['current_phase'] = '/end_phase'
-                    result_dict['next_phase'] = ['/end_phase']
-
-                    return result_dict
-                    '''
-                    return {
-                        'input': tokens,
-                        'intent': self.intent,
-                        'entity': [],
-                        'state': 'FAIL_EMOTION',
-                        'emotion': pre_emotion,
-                        'emotions': [emotion] + pre_emotions,
-                        'emotion_prob': [max_emotion_prob] + pre_emotion_prob,
-                        #'topic': topic,
-                        'topics': [topic] + pre_topics,
-                        'topic_prob': [max_topic_prob] + pre_topic_prob,
-                        'answer': self.emotion_answerer.generate_answer_over5(pre_emotions),
-                        'previous_phase': ['/recognize_emotion_chat'],
-                        'current_phase': '/end_phase',
-                        'next_phase': ['/end_phase'],
-                        'intent_turn_cnt': intent_turn_cnt
-                    }
-                    '''
-
-                else:
-                    # 2-2. 감정확률 >= threshold일 경우
-
-                    result_dict['emotion'] = pre_result_dict['emotion']
-                    result_dict['state'] = 'SUCCESS'
-                    result_dict['answer'] = self.emotion_answerer.contents_answer(text,
-                                                                              pre_result_dict['emotion'],
-                                                                              result_dict['topics'][0])
-                    result_dict['previous_phase'] = pre_result_dict['current_phase']
-                    result_dict['current_phase'] = '/end_phase'
-                    result_dict['next_phase'] = ['/end_phase']
-
-                    return result_dict
-                    '''
-                    return {
-                        'input': tokens,
-                        'intent': self.intent,
-                        'entity': [],
-                        'state': 'SUCCESS',
-                        'emotion': emotion,
-                        'emotions': [emotion] + pre_emotions,
-                        'emotion_prob': [max_emotion_prob] + pre_emotion_prob,
-                        #'topic': topic,
-                        'topics': [topic] + pre_topics,
-                        'topic_prob': [max_topic_prob] + pre_topic_prob,
-                        'answer': self.emotion_answerer.contents_answer(text, pre_emotion, topic),
-                        'previous_phase': ['/generate_emotion_chat'],
-                        'current_phase': '/end_phase',
-                        'next_phase': ['/end_phase'],
-                        'intent_turn_cnt': intent_turn_cnt
-                    }
-                    '''
-
-        else:
-            # turn_cnt >=5 (총 6회 안녕 제외하고 5회)
-            if pre_result_dict['emotion'] == '':
-                # 이전에 확실한 감정이 없었을 경우
-                if result_dict['emotion_prob'][0] > config.EMOTION['threshold']:
-                    # 현재 감정이 threshold를 넘었을 경우
-
-                    result_dict['emotion'] = result_dict['emotions'][0]
-                    result_dict['state'] = 'SUCCESS'
-                    result_dict['answer'] = self.emotion_answerer.contents_answer(text,
-                                                                              pre_result_dict['emotion'],
-                                                                              result_dict['topics'][0])
-                    result_dict['previous_phase'] = pre_result_dict['current_phase']
-                    result_dict['current_phase'] = '/end_phase'
-                    result_dict['next_phase'] = ['/end_phase']
-
-                    return result_dict
-                    '''
-                    return {
-                        'input': tokens,
-                        'intent': self.intent,
-                        'entity': [],
-                        'state': 'SUCCESS',
-                        'emotion': emotion,
-                        'emotions': [emotion] + pre_emotions,
-                        'emotion_prob': [max_emotion_prob] + pre_emotion_prob,
-                        # 'topic': topic,
-                        'topics': [topic] + pre_topics,
-                        'topic_prob': [max_topic_prob] + pre_topic_prob,
-                        'answer': self.emotion_answerer.contents_answer(text, pre_emotion, topic),
-                        'previous_phase': ['/generate_emotion_chat'],
-                        'current_phase': '/end_phase',
-                        'next_phase': ['/end_phase'],
-                        'intent_turn_cnt': intent_turn_cnt
-                    }
-                    '''
-
-                else:
-                    # 현재 감정이 threshold를 넘지 않았을 경우
-
-                    result_dict['emotion'] = pre_result_dict['emotion']
-                    result_dict['state'] = 'FAIL'
-                    result_dict['answer'] = self.emotion_answerer.generate_answer_over5(pre_result_dict['emotions'])
-                    result_dict['previous_phase'] = pre_result_dict['current_phase']
-                    result_dict['current_phase'] = '/end_phase'
-                    result_dict['next_phase'] = ['/end_phase']
-
-                    return result_dict
-                    '''
-                    return {
-                        'input': tokens,
-                        'intent': self.intent,
-                        'entity': [],
-                        'state': 'FAIL_EMOTION',
-                        'emotion': pre_emotion,
-                        'emotions': [emotion] + pre_emotions,
-                        'emotion_prob': [max_emotion_prob] + pre_emotion_prob,
-                        # 'topic': topic,
-                        'topics': [topic] + pre_topics,
-                        'topic_prob': [max_topic_prob] + pre_topic_prob,
-                        'answer': self.emotion_answerer.generate_answer_over5(pre_emotions),
-                        'previous_phase': ['/recognize_emotion_chat'],
-                        'current_phase': '/end_phase',
-                        'next_phase': ['/end_phase'],
-                        'intent_turn_cnt': intent_turn_cnt
-                    }
-                    '''
-
-            else:
-                # 이전에 확실한 감정이 있었을 경우
-
-                result_dict['emotion'] = pre_result_dict['emotion']
-                result_dict['state'] = 'SUCCESS'
-                result_dict['answer'] = self.emotion_answerer.contents_answer(text,
-                                                                          pre_result_dict['emotion'],
-                                                                          result_dict['topics'][0])
-                result_dict['previous_phase'] = pre_result_dict['current_phase']
-                result_dict['current_phase'] = '/end_phase'
-                result_dict['next_phase'] = ['/end_phase']
-
-                return result_dict
-                '''
-                return {
-                    'input': tokens,
-                    'intent': self.intent,
-                    'entity': [],
-                    'state': 'SUCCESS',
-                    'emotion': emotion,
-                    'emotions': [emotion] + pre_emotions,
-                    'emotion_prob': [max_emotion_prob] + pre_emotion_prob,
-                    # 'topic': topic,
-                    'topics': [topic] + pre_topics,
-                    'topic_prob': [max_topic_prob] + pre_topic_prob,
-                    'answer': self.emotion_answerer.contents_answer(text, pre_emotion, topic),
-                    'previous_phase': ['/generate_emotion_chat'],
-                    'current_phase': '/end_phase',
-                    'next_phase': ['/end_phase'],
-                    'intent_turn_cnt': intent_turn_cnt
-                }
-                '''
 
     def apply_unk(self, pre_result_dict: dict, result_dict: dict) -> dict:
         """
@@ -956,22 +306,19 @@ class Scenario:
         # result_dict default form setting
         self.set_default_result_dict(pre_result_dict, result_dict)
 
-        if result_dict['intent_turn_cnt'] >= 5:
+        if result_dict['intent_turn_cnt'] >= 2:
 
-            result_dict['state'] = 'over_turn_5'
+            result_dict['state'] = 'over_turn_2'
             result_dict['answer'] = config.ANSWER['default_error_end']
-            result_dict['previous_phase'] = pre_result_dict['current_phase']
             result_dict['current_phase'] = '/end_phase'
-            result_dict['next_phase'] = ['/end_phase']
-
-
+            result_dict['next_phase'] = []
 
         else:
+            # 넋두리 대화 2회 전
             result_dict['state'] = 'UNK'
             result_dict['answer'] = config.ANSWER['default_error_ucs']
-            result_dict['previous_phase'] = pre_result_dict['current_phase']
             result_dict['current_phase'] = '/unk'
-            result_dict['next_phase'] = ['/other_user', '/recognize_uc_chat', '/recognize_emotion_chat',
+            result_dict['next_phase'] = ['/unk', '/recognize_uc_chat', '/recognize_emotion_chat',
                                          '/recognize_uc',
                                          '/recognize_emotion', '/recognize_topic', '/generate_emotion_chat',
                                          '/check_ucs',

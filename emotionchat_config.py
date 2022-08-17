@@ -27,9 +27,9 @@ bot_name = '마음결'
     '/generate_emotion_chat': 생성모델을 통한 챗봇 대화, # 인텐트가 '마음상태호소'인게 turn_cnt >=1(2번)인 경우
     '/recognize_emotion': (확실한) 감정인식,
      /recognize_topic: (확실한) 주제 인식,
-    '/check_ucs': 확인용 재질의,
-    '/check_ucs_positive': 확인용 재질의 긍정,
-    '/check_ucs_negative':  확인용 재질의 부정,
+    '/check_uc': 확인용 재질의,
+    '/check_uc_positive': 확인용 재질의 긍정,
+    '/check_uc_negative':  확인용 재질의 부정,
     '/recommend_contents': (감정)컨텐츠제공,
     '/call_caregiver': (불편함)해결(간병인 호출),
     '/solve':  (궁금함)해결,
@@ -96,7 +96,9 @@ ANSWER = {
     'goodbyemsg_uc': ['네. 다음에 또 불편한 점 있으시면 불러주세요. 좋은 하루 되세요^^\n'],
     'goodbyemsg_chat': ['네. 다음에 또 불러서 이야기 들려주세요. 좋은 하루 되세요^^\n'],
     'default_error_welcomemsg': ['반가워요. 오늘 기분은 어떠세요? 아니면 다른 불편하거나 궁금하신 점이 있으신가요?\n'],
-    'default_error_emotion': ['그러시군요. 오늘 기분이 어떠신지 좀 더 구체적으로 말씀해주실 수 있으신가요?\n']
+    'default_error_emotion': ['그러시군요. 오늘 기분이 어떠신지 좀 더 구체적으로 말씀해주실 수 있으신가요?\n'],
+    'goodbyemsg_unk' : ['무슨 말인지 이해 못했어요.\n', '다음에 다시 불러주세요.\n'],
+    'induct_emotion': ['감정 상태를 조금 더 자세하게 말씀해주세요.\n']
 }
 
 SORT_INTENT = {
@@ -116,9 +118,9 @@ PHASE_INTENT = {
     '/recognize_uc': [],
     '/generate_emotion_chat': [],
     '/recognize_emotion': [],
-    '/check_ucs': [],
-    '/check_ucs_positive': [],
-    '/check_ucs_negative': [],
+    '/check_uc': [],
+    '/check_uc_positive': [],
+    '/check_uc_negative': [],
     '/recommend_contents': [],
     '/call_caregiver': [],
     '/solve': [],
@@ -129,7 +131,7 @@ PHASE_INTENT = {
 # 해당 단계의 예상 단계를 config에 미리 저장해놓자!
 
 PRED_PHASE = {
-    '/welcomemsg_chat': ['/other_user', '/recognize_uc_chat', '/recognize_emotion_chat', '/recognize_uc', '/recognize_emotion', '/recognize_topic', '/generate_emotion_chat', '/check_ucs',
+    '/welcomemsg_chat': ['/other_user', '/recognize_uc_chat', '/recognize_emotion_chat', '/recognize_uc', '/recognize_emotion', '/recognize_topic', '/generate_emotion_chat', '/check_uc',
                         '/fill_slot', '/end_phase'],  # ok
     '/other_user': ['/induce_ucs', '/recongnize_uc_chat', '/recongnize_emotion_chat',
                    '/recognize_uc', '/recognize_emotion', '/recognize_topic',
@@ -138,15 +140,15 @@ PRED_PHASE = {
     #                          '/recognize_uc'],
     # '/recognize_uc_chat': ['/recognize_uc', '/fill_slot'],
     # '/recognize_emotion_chat': ['/generate_emotion_chat'],
-    '/fill_slot': ['/fill_slot', '/recognize_uc', '/check_ucs','/check_ucs_positive', '/check_ucs_negative'],   # ok
-    '/recognize_uc': ['/check_ucs', '/fill_slot', '/recognize_uc', '/check_ucs_positive', '/check_ucs_negative',
-                      '/check_ucs', '/end_phase'],  # ok
+    '/fill_slot': ['/fill_slot', '/recognize_uc', '/check_uc','/check_uc_positive', '/check_uc_negative'],   # ok
+    '/recognize_uc': ['/check_uc', '/fill_slot', '/recognize_uc', '/check_uc_positive', '/check_uc_negative',
+                      '/check_uc', '/end_phase'],  # ok
     '/generate_emotion_chat': ['/generate_emotion_chat', '/end_chat', '/recognize_emotion_chat',
                             '/recommend_contents', '/end_phase'],   # ok
-    # '/recognize_emotion': ['/check_ucs'],
-    '/check_ucs': ['/check_ucs_positive', '/check_ucs_negative', '/check_ucs', '/end_phase'],   # ok
-    '/check_ucs_positive': ['/end_chat'],   # ok
-    '/check_ucs_negative': ['/end_chat'],   # ok
+    # '/recognize_emotion': ['/check_uc'],
+    '/check_uc': ['/check_uc_positive', '/check_uc_negative', '/check_uc', '/end_phase'],   # ok
+    '/check_uc_positive': ['/end_chat'],   # ok
+    '/check_uc_negative': ['/end_chat'],   # ok
     # '/recommend_contents': ['/end_chat'],
     # '/call_caregiver': ['/end_chat'],
     # '/solve': ['/end_chat'],
@@ -159,7 +161,7 @@ STATE = ['SUCCESS', 'FAIL', # 엔티티, 감정 인식에 성공
          'SUDDEN_GOODBYE',  # 갑자기 인텐트 작별인사가 뜬 경우
          'OVER_TURN_5', # 전체 turn_cnt>=5 여서 종료되는 경우
          'FAIL_FILLING_SLOT',   # intent_turn_cnt >=5 인데 엔티티 인식에 실패했을 경우
-         'POSITIVE', 'NEGATIVE',    # 이전 대화 단계가 '/check_ucs'인데 현재 인텐트 '긍정', '부정'이 나왔을 경우
+         'POSITIVE', 'NEGATIVE',    # 이전 대화 단계가 '/check_uc'인데 현재 인텐트 '긍정', '부정'이 나왔을 경우
          'UNK', # intent가 UNK로 인식됐을 경우
          'REQUIRE_CERTAIN_EMOTION'  # 이전에 확실한 감정이 하나 있었는데 intent_turn_cnt <=1 이거나, 마음상태호소 대화이다가 인텐트 부정,긍정으로 나올 경우  
          'NOT_RECOGNIZE_UC' # 불,궁을 인식하지 않은 상태로 현재 인텐트 '긍정', '부정'이 나왔을 경우,

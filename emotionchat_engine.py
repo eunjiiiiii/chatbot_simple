@@ -112,8 +112,8 @@ class EmotionChat:
         elif 'REQUIRE_' in pre_state:
             _, entity_ = self.intent_entity_classifier(text)
             intent = pre_intent
-        elif '/check_ucs' in pre_pred_phases:
-            # 이전 단계의 예상 단계에 /check_ucs (재질의) 가 있을 경우 = 현재 예상 단계가 재질의일 경우
+        elif '/check_uc' in pre_pred_phases:
+            # 이전 단계의 예상 단계에 /check_uc (재질의) 가 있을 경우 = 현재 예상 단계가 재질의일 경우
             intent, entity_ = self.intent_entity_classifier(text)
             # c_ucs = False  # 이미 인식했기 때문. 재질의 필요 x => c_ucs == False
             c_ucs = False
@@ -163,11 +163,12 @@ class EmotionChat:
                 #'topic': '',
                 'topics': pre_topics,
                 'topic_prob': pre_topic_prob,
+
                 'answer': config.ANSWER['welcomemsg_chat'],
                 'previous_phase': '',
                 'current_phase': '/welcomemsg_chat',
                 'next_phase': ['/other_user', '/recognize_uc_chat', '/recognize_emotion_chat', '/recognize_uc',
-                               '/recognize_emotion', '/recognize_topic', '/generate_emotion_chat', '/check_ucs',
+                               '/recognize_emotion', '/recognize_topic', '/generate_emotion_chat', '/check_uc',
                                '/fill_slot', '/end_phase'],
                 'intent_turn_cnt': intent_turn_cnt
             }
@@ -285,223 +286,6 @@ class EmotionChat:
             # 단계 오류 (예상한 단계가 아닐 경우)
             return self.__handle_phase_error(turn_cnt, pre_result_dict, result_dict, text)
 
-        '''
-        # 예상한 단계가 아닐 경우에 error 메세지 출력
-        else:
-            print('*-' * 30)
-            print('(system msg) 대화 단계 오류')
-            print('(system msg) 이전 단계 : ' + str(pre_phase))
-            print('(system msg) 현재 단계 : ' + result_dict['current_phase'])
-            print("(system msg) intent_turn_cnt : " + str(intent_turn_cnt))
-            print('*-' * 30)
-
-            if turn_cnt > 5:
-                # 전체 turn 횟수가 6회가 넘으면 종료
-                return {
-                    'input': tokens + pre_tokens,
-                    'intent': '',
-                    'entity': [],
-                    'state': 'SUCCESS',
-                    'emotion': '',
-                    'emotions': [emotion] + pre_emotions,
-                    'emotion_prob': [max_emotion_prob] + pre_emotion_prob,
-                    #'topic': '',
-                    'topics': [topic] + pre_topics,
-                    'topic_prob': [max_topic_prob] + pre_topic_prob,
-                    'answer': config.ANSWER['goodbyemsg_chat'],
-                    'previous_phase': ['check_ucs', '/recommend_contents'],
-                    'current_phase': '/end_phase',
-                    'next_phase': ['/end_phase'],
-                    'intent_turn_cnt': intent_turn_cnt
-                }
-
-            else:
-                # 전체 turn 횟수가 6회가 넘지 않았을 경우
-                if pre_intent == '만남인사' and intent_turn_cnt <= 1:
-                    # 만남인사 하고 딴소리 하는 경우 -> 1번까지만 봐줌
-                    return {
-                        'input': tokens + pre_tokens,
-                        'intent': intent,
-                        'entity': entity,
-                        'state': 'SUCCESS',
-                        'emotion': '',
-                        'emotions': pre_emotions,
-                        'emotion_prob': pre_emotion_prob,
-                        #'topic': topic,
-                        'topics': pre_topics,
-                        'topic_prob': pre_topic_prob,
-                        'answer': config.ANSWER['default_error_welcomemsg'],
-                        'previous_phase': pre_phase,
-                        'current_phase': result_dict['current_phase'],
-                        'next_phase': pre_pred_phases,
-                        'intent_turn_cnt': intent_turn_cnt
-                    }
-
-                elif intent == '작별인사':
-                    # 원래 작별인사 타이밍이 아닌데 작별인사 하는 경우
-                    """
-                    if emo_prob_chk == True:
-                        if scenarios['EMOTION'] in ['분노', '슬픔', '불안']:
-                            return{
-    
-                            }
-                        return{
-    
-                        }
-                    """
-
-                    return {
-                        'input': tokens + pre_tokens,
-                        'intent': '',
-                        'entity': [],
-                        'state': 'SUCCESS',
-                        'emotion': '',
-                        'emotions': pre_emotions,
-                        'emotion_prob': pre_emotion_prob,
-                        #'topic': '',
-                        'topics': pre_topics,
-                        'topic_prob': pre_topic_prob,
-                        'answer': config.ANSWER['goodbyemsg_chat'],
-                        'previous_phase': ['check_ucs', '/recommend_contents'],
-                        'current_phase': '/end_phase',
-                        'next_phase': ['/end_phase'],
-                        'intent_turn_cnt': intent_turn_cnt
-                    }
-
-                elif (pre_intent in ['마음상태호소', '부정', '긍정'] or intent in ['마음상태호소','부정','긍정']) \
-                        and max_emotion_prob < config.EMOTION['threshold']:
-                    # 대화 오류인데/ 이전까지의 대화가 감정대화이고, 현재 들어온 대화의 감정 확률이 threshold를 넘지 않았을 경우
-                    if pre_emotion == '':
-                        # 이전에 확실한 감정이 없었을 경우
-                        return {
-                            'input': tokens + pre_tokens,
-                            'intent': '마음상태호소',
-                            'entity': entity,
-                            'state': 'REQUIRE_EMOTION',
-                            'emotion': '',
-                            'emotions': [emotion] + pre_emotions,
-                            'emotion_prob': [max_emotion_prob] + pre_emotion_prob,
-                            #'topic': '',
-                            'topics': [topic] + pre_topics,
-                            'topic_prob': [max_topic_prob] + pre_topic_prob,
-                            'answer': EmotionAnswerer().generate_answer_under5(text),
-                            'previous_phase': ['/recognize_emotion_chat', '/other_user'],
-                            'current_phase': '/generate_emotion_chat',
-                            'next_phase': ['/generate_emotion_chat', '/end_chat', '/recognize_emotion_chat',
-                                           '/recommend_contents', '/end_phase'],
-                            'intent_turn_cnt': intent_turn_cnt
-                        }
-
-                    else:
-                        # 이전에 확실한 감정이 있었던 경우
-                        return {
-                            'input': tokens + pre_tokens,
-                            'intent': '마음상태호소',
-                            'entity': entity,
-                            'state': 'REQUIRE_EMOTION',
-                            'emotion': pre_emotion,
-                            'emotions': [emotion] + pre_emotions,
-                            'emotion_prob': [max_emotion_prob] + pre_emotion_prob,
-                            #'topic': topic,
-                            'topics': [topic] + pre_topics,
-                            'topic_prob': [max_topic_prob] + pre_topic_prob,
-                            'answer': config.ANSWER['default_error_emotion'],  # 수정 봐야 함!!!! (07/06)
-                            'previous_phase': ['/recognize_emotion_chat', '/other_user'],
-                            'current_phase': '/generate_emotion_chat',
-                            'next_phase': ['/generate_emotion_chat', '/end_chat', '/recognize_emotion_chat',
-                                           '/recommend_contents', '/end_phase'],
-                            'intent_turn_cnt': intent_turn_cnt
-                        }
-
-                elif pre_phase != '/check_ucs' and intent in ['부정', '긍정', '만남인사', '욕구표출']:
-                    # 이전 단계가 불궁을 인식한 단계가 아님에도 부정, 긍정, 만남인사, 욕구표출인텐트가 나오는 경우
-                    if '/end_chat' in pre_pred_phases:
-                        return {
-                            'input': tokens + pre_tokens,
-                            'intent': 'UNK',
-                            'entity': entity,
-                            'state': 'SUCCESS',
-                            'emotion': '',
-                            'emotions': [emotion] + pre_emotions,
-                            'emotion_prob': [max_emotion_prob] + pre_emotion_prob,
-                            #'topic': topic,
-                            'topics': [topic] + pre_topics,
-                            'topic_prob': [max_topic_prob] + pre_topic_prob,
-                            'answer': config.ANSWER['default_error_end'],
-                            'previous_phase': ['check_ucs', '/other_use', '/recommend_contents', '/end_phase'],
-                            'current_phase': '/end_phase',
-                            'next_phase': ['/end_phase'],
-                            'intent_turn_cnt': intent_turn_cnt
-                        }
-
-                    else:
-                        return {
-                            'input': tokens + pre_tokens,
-                            'intent': 'UNK',
-                            'entity': entity,
-                            'state': 'SUCCESS',
-                            'emotion': '',
-                            'emotions': [emotion] + pre_emotions,
-                            'emotion_prob': [max_emotion_prob] + pre_emotion_prob,
-                            #'topic': topic,
-                            'topics': [topic] + pre_topics,
-                            'topic_prob': [max_topic_prob] + pre_topic_prob,
-                            'answer': config.ANSWER['default_error'],
-                            'previous_phase': ['/welcomemsg_chat', '/other_user'],
-                            'current_phase': '/other_user',
-                            'next_phase': ['/induce_ucs', '/recongnize_uc_chat', '/recongnize_emotion_chat',
-                                           '/recognize_uc', '/recognize_emotion', '/recognize_topic',
-                                           '/end_chat', '/generate_emotion_chat', '/recommend_contents', '/end_phase'],
-                            'intent_turn_cnt': intent_turn_cnt
-                        }
-
-                elif pre_intent == '마음상태호소' and max_emotion_prob > config.EMOTION['threshold']:
-                    # 이전 대화가 감정대화 & 현재 감정 확률이 threshold를 넘었을 경우
-                    return {
-                        'input': tokens + pre_tokens,
-                        'intent': intent,
-                        'entity': [],
-                        'state': 'SUCCESS',
-                        'emotion': emotion,
-                        'emotions': [emotion] + pre_emotions,
-                        'emotion_prob': [max_emotion_prob] + pre_emotion_prob,
-                        #'topic': topic,
-                        'topics': [topic] + pre_topics,
-                        'topic_prob': [max_topic_prob] + pre_topic_prob,
-                        'answer': EmotionAnswerer().generate_answer_under5(text),
-                        'previous_phase': ['/recognize_emotion_chat'],
-                        'current_phase': '/generate_emotion_chat',
-                        'next_phase': ['/generate_emotion_chat', '/recognize_emotion_chat', '/recommend_contents',
-                                       '/end_phase'],
-                        'intent_turn_cnt': intent_turn_cnt
-                    }
-
-                else:
-                    # 그 외에 에러 처리(인텐트 인식 잘못 했을 경우)
-                    return {
-                        'input': tokens + pre_tokens,
-                        'intent': intent,
-                        'entity': entity,
-                        'state': 'SUCCESS',
-                        'emotion': '',
-                        'emotions': [emotion] + pre_emotions,
-                        'emotion_prob': [max_emotion_prob] + pre_emotion_prob,
-                        #'topic': topic,
-                        'topics': [topic] + pre_topics,
-                        'topic_prob': [max_topic_prob] + pre_topic_prob,
-                        'answer': config.ANSWER['default_error_ucs'],
-                        'previous_phase': pre_phase,
-                        'current_phase': result_dict['current_phase'],
-                        'next_phase': pre_pred_phases,
-                        'intent_turn_cnt': intent_turn_cnt
-                    }
-
-            """
-
-            (07/18) 잘못 알아들었을 경우 fall back error 메세지 출력하는 코드 작성
-
-            """
-            '''
 
     def _edit_entity(self, entity: list) -> list:
         """
@@ -595,25 +379,6 @@ class EmotionChat:
             result_dict['current_phase'] = '/end_phase'
             result_dict['next_phase'] = ['/end_phase']
 
-            '''
-            return {
-                'input': tokens + pre_tokens,
-                'intent': '',
-                'entity': [],
-                'state': 'SUCCESS',
-                'emotion': '',
-                'emotions': [emotion] + pre_emotions,
-                'emotion_prob': [max_emotion_prob] + pre_emotion_prob,
-                # 'topic': '',
-                'topics': [topic] + pre_topics,
-                'topic_prob': [max_topic_prob] + pre_topic_prob,
-                'answer': config.ANSWER['goodbyemsg_chat'],
-                'previous_phase': ['check_ucs', '/recommend_contents'],
-                'current_phase': '/end_phase',
-                'next_phase': ['/end_phase'],
-                'intent_turn_cnt': intent_turn_cnt
-            }
-            '''
 
         else:
             # 전체 turn 횟수가 6회가 넘지 않았을 경우
@@ -625,37 +390,9 @@ class EmotionChat:
 
                 #return result_dict
 
-                '''
-                return {
-                    'input': tokens + pre_tokens,
-                    'intent': intent,
-                    'entity': entity,
-                    'state': 'SUCCESS',
-                    'emotion': '',
-                    'emotions': pre_emotions,
-                    'emotion_prob': pre_emotion_prob,
-                    # 'topic': topic,
-                    'topics': pre_topics,
-                    'topic_prob': pre_topic_prob,
-                    'answer': config.ANSWER['default_error_welcomemsg'],
-                    'previous_phase': pre_phase,
-                    'current_phase': result_dict['current_phase'],
-                    'next_phase': pre_pred_phases,
-                    'intent_turn_cnt': intent_turn_cnt
-                }
-                '''
+
             elif result_dict['intent'] == '작별인사':
                 # 원래 작별인사 타이밍이 아닌데 작별인사 하는 경우
-                """
-                if emo_prob_chk == True:
-                    if scenarios['EMOTION'] in ['분노', '슬픔', '불안']:
-                        return{
-
-                        }
-                    return{
-
-                    }
-                """
 
                 result_dict['emotion'] = pre_result_dict['emotion']
                 result_dict['state'] = 'SUDDEN_GOODBYE'
@@ -663,26 +400,6 @@ class EmotionChat:
                 result_dict['previous_phase'] = pre_result_dict['current_phase']
                 result_dict['current_phase'] = '/end_phase'
                 result_dict['next_phase'] = ['/end_phase']
-
-                '''
-                return {
-                    'input': tokens + pre_tokens,
-                    'intent': '',
-                    'entity': [],
-                    'state': 'SUCCESS',
-                    'emotion': '',
-                    'emotions': pre_emotions,
-                    'emotion_prob': pre_emotion_prob,
-                    # 'topic': '',
-                    'topics': pre_topics,
-                    'topic_prob': pre_topic_prob,
-                    'answer': config.ANSWER['goodbyemsg_chat'],
-                    'previous_phase': ['check_ucs', '/recommend_contents'],
-                    'current_phase': '/end_phase',
-                    'next_phase': ['/end_phase'],
-                    'intent_turn_cnt': intent_turn_cnt
-                }
-                '''
 
             elif (pre_result_dict['intent'] in ['마음상태호소', '부정', '긍정'] or
                   result_dict['intent'] in ['마음상태호소', '부정', '긍정']) and result_dict['emotion_prob'][0] < config.EMOTION['threshold']:
@@ -699,30 +416,6 @@ class EmotionChat:
                     result_dict['next_phase'] = ['/generate_emotion_chat', '/end_chat', '/recognize_emotion_chat',
                                                  '/recommend_contents', '/end_phase']
 
-                    '''
-                    return {
-                        'input': tokens + pre_tokens,
-                        'intent': '마음상태호소',
-                        'entity': entity,
-                        'state': 'REQUIRE_EMOTION',
-                        'emotion': '',
-                        'emotions': [emotion] + pre_emotions,
-                        'emotion_prob': [max_emotion_prob] + pre_emotion_prob,
-                        # 'topic': '',
-                        'topics': [topic] + pre_topics,
-                        'topic_prob': [max_topic_prob] + pre_topic_prob,
-                        'answer': EmotionAnswerer().generate_answer_under5(text,
-                                                                            result_dict['emotion'],
-                                                                            result_dict['topics'][0])
-,
-                        'previous_phase': ['/recognize_emotion_chat', '/other_user'],
-                        'current_phase': '/generate_emotion_chat',
-                        'next_phase': ['/generate_emotion_chat', '/end_chat', '/recognize_emotion_chat',
-                                       '/recommend_contents', '/end_phase'],
-                        'intent_turn_cnt': intent_turn_cnt
-                    }
-                    '''
-
                 else:
                     # 이전에 확실한 감정이 있었던 경우
 
@@ -736,28 +429,7 @@ class EmotionChat:
                     result_dict['next_phase'] = ['/generate_emotion_chat', '/end_chat', '/recognize_emotion_chat',
                                                  '/recommend_contents', '/end_phase']
 
-                    '''
-                    return {
-                        'input': tokens + pre_tokens,
-                        'intent': '마음상태호소',
-                        'entity': entity,
-                        'state': 'REQUIRE_EMOTION',
-                        'emotion': pre_emotion,
-                        'emotions': [emotion] + pre_emotions,
-                        'emotion_prob': [max_emotion_prob] + pre_emotion_prob,
-                        # 'topic': topic,
-                        'topics': [topic] + pre_topics,
-                        'topic_prob': [max_topic_prob] + pre_topic_prob,
-                        'answer': config.ANSWER['default_error_emotion'],  # 수정 봐야 함!!!! (07/06)
-                        'previous_phase': ['/recognize_emotion_chat', '/other_user'],
-                        'current_phase': '/generate_emotion_chat',
-                        'next_phase': ['/generate_emotion_chat', '/end_chat', '/recognize_emotion_chat',
-                                       '/recommend_contents', '/end_phase'],
-                        'intent_turn_cnt': intent_turn_cnt
-                    }
-                    '''
-
-            elif pre_result_dict['current_phase'] != '/check_ucs' and \
+            elif pre_result_dict['current_phase'] != '/check_uc' and \
                     result_dict['intent'] in ['부정', '긍정', '만남인사', '욕구표출']:
                 # 이전 단계가 불궁을 인식한 단계가 아님에도 부정, 긍정, 만남인사, 욕구표출인텐트가 나오는 경우
                 if '/end_chat' in pre_result_dict['next_phase']:
@@ -769,26 +441,6 @@ class EmotionChat:
                     result_dict['current_phase'] = '/end_phase'
                     result_dict['next_phase'] = ['/end_phase']
 
-                    '''
-                    return {
-                        'input': tokens + pre_tokens,
-                        'intent': 'UNK',
-                        'entity': entity,
-                        'state': 'SUCCESS',
-                        'emotion': '',
-                        'emotions': [emotion] + pre_emotions,
-                        'emotion_prob': [max_emotion_prob] + pre_emotion_prob,
-                        # 'topic': topic,
-                        'topics': [topic] + pre_topics,
-                        'topic_prob': [max_topic_prob] + pre_topic_prob,
-                        'answer': config.ANSWER['default_error_end'],
-                        'previous_phase': ['check_ucs', '/other_use', '/recommend_contents', '/end_phase'],
-                        'current_phase': '/end_phase',
-                        'next_phase': ['/end_phase'],
-                        'intent_turn_cnt': intent_turn_cnt
-                    }
-                    '''
-
                 else:
 
                     result_dict['emotion'] = pre_result_dict['emotion']
@@ -799,28 +451,6 @@ class EmotionChat:
                     result_dict['next_phase'] = ['/induce_ucs', '/recongnize_uc_chat', '/recongnize_emotion_chat',
                                        '/recognize_uc', '/recognize_emotion', '/recognize_topic',
                                        '/end_chat', '/generate_emotion_chat', '/recommend_contents', '/end_phase'],
-
-                    '''
-                    return {
-                        'input': tokens + pre_tokens,
-                        'intent': 'UNK',
-                        'entity': entity,
-                        'state': 'SUCCESS',
-                        'emotion': '',
-                        'emotions': [emotion] + pre_emotions,
-                        'emotion_prob': [max_emotion_prob] + pre_emotion_prob,
-                        # 'topic': topic,
-                        'topics': [topic] + pre_topics,
-                        'topic_prob': [max_topic_prob] + pre_topic_prob,
-                        'answer': config.ANSWER['default_error'],
-                        'previous_phase': ['/welcomemsg_chat', '/other_user'],
-                        'current_phase': '/other_user',
-                        'next_phase': ['/induce_ucs', '/recongnize_uc_chat', '/recongnize_emotion_chat',
-                                       '/recognize_uc', '/recognize_emotion', '/recognize_topic',
-                                       '/end_chat', '/generate_emotion_chat', '/recommend_contents', '/end_phase'],
-                        'intent_turn_cnt': intent_turn_cnt
-                    }
-                    '''
 
             elif pre_result_dict['intent'] == '마음상태호소' and \
                     result_dict['emotion_prob'] > config.EMOTION['threshold']:
@@ -836,27 +466,6 @@ class EmotionChat:
                 result_dict['next_phase'] = ['/generate_emotion_chat', '/end_chat', '/recognize_emotion_chat',
                                              '/recommend_contents', '/end_phase']
 
-                '''
-                return {
-                    'input': tokens + pre_tokens,
-                    'intent': intent,
-                    'entity': [],
-                    'state': 'SUCCESS',
-                    'emotion': emotion,
-                    'emotions': [emotion] + pre_emotions,
-                    'emotion_prob': [max_emotion_prob] + pre_emotion_prob,
-                    # 'topic': topic,
-                    'topics': [topic] + pre_topics,
-                    'topic_prob': [max_topic_prob] + pre_topic_prob,
-                    'answer': EmotionAnswerer().generate_answer_under5(text),
-                    'previous_phase': ['/recognize_emotion_chat'],
-                    'current_phase': '/generate_emotion_chat',
-                    'next_phase': ['/generate_emotion_chat', '/recognize_emotion_chat', '/recommend_contents',
-                                   '/end_phase'],
-                    'intent_turn_cnt': intent_turn_cnt
-                }
-                '''
-
             else:
                 # 그 외에 에러 처리(인텐트 인식 잘못 했을 경우)
 
@@ -867,25 +476,6 @@ class EmotionChat:
                 result_dict['current_phase'] = pre_result_dict['current_phase']
                 result_dict['next_phase'] = pre_result_dict['next_phase']
 
-                '''
-                return {
-                    'input': tokens + pre_tokens,
-                    'intent': intent,
-                    'entity': entity,
-                    'state': 'SUCCESS',
-                    'emotion': '',
-                    'emotions': [emotion] + pre_emotions,
-                    'emotion_prob': [max_emotion_prob] + pre_emotion_prob,
-                    # 'topic': topic,
-                    'topics': [topic] + pre_topics,
-                    'topic_prob': [max_topic_prob] + pre_topic_prob,
-                    'answer': config.ANSWER['default_error_ucs'],
-                    'previous_phase': pre_phase,
-                    'current_phase': result_dict['current_phase'],
-                    'next_phase': pre_pred_phases,
-                    'intent_turn_cnt': intent_turn_cnt
-                }
-                '''
         return result_dict
 
     # def check_turn_cnt(self, turn_cnt):
@@ -938,41 +528,21 @@ def final_emotion(dict_: dict) -> dict:
     topic_prob = dict_['topic_prob']
 
     # emotion
-    max_emotion = most_freq(emotions)
-    pos = [i for i in range(len(emotions)) if emotions[i] == max_emotion]
-    max_emotion_prob = emotion_prob[pos[0]]
-    for idx in pos:
-        if emotion_prob[idx] > max_emotion_prob:
-            max_emotion_prob = emotion_prob[idx]
+    if emotions[0] == emotions[1]:
+        max_emotion = emotions[0]
+    else:
+        if emotion_prob[0] > emotion_prob[1]:
+            max_emotion_prob = emotion_prob[0]
+        else:
+            max_emotion_prob = emotion_prob[1]
 
     # topic
-    max_topic = most_freq(topics)
-    pos = [i for i in range(len(topics)) if topics[i] == max_topic]
-    max_topic_prob = topic_prob[pos[0]]
-    for idx in pos:
-        if topic_prob[idx] > max_topic_prob:
-            max_topic_prob = topic_prob[idx]
+    if topics[0] == topics[1]:
+        max_topic = topics[0]
+    else:
+        if topic_prob[0] > topic_prob[1]:
+            max_topic_prob = topic_prob[0]
+        else:
+            max_topic_prob = topic_prob[1]
 
     return {max_emotion: max_emotion_prob, max_topic: max_topic_prob}
-
-
-def most_freq(list_: list):
-    """
-    리스트에서 최빈 값 리턴하는 함수
-    :param list_: 감정(주제) 리스트
-    :return: 리스트 최빈값
-    """
-
-    length = len(list_)
-    arr = [0 for i in range(length)]
-    for i in range(length):
-        for j in range(i + 1, length):
-            if list_[i] == list_[j]:
-                arr[i] += 1
-    max_idx = 0
-    for i in range(length):
-        for j in range(i + 1, length):
-            if arr[i] < arr[j]:
-                max_idx = j
-
-    return list_[max_idx]

@@ -74,6 +74,14 @@ dust = Scenario(
 ### 추가
 # 불편함
 
+requestAct = Scenario(
+    intent='활동요구',
+    api=DiscomfortAnswerer().requestAct_check_form,
+    emotion_answerer=answerer,
+    scenario={
+    }
+)
+
 physicalDiscomfort = Scenario(
     intent='신체불편호소',
     api=DiscomfortAnswerer().physicalDiscomfort_check_form,
@@ -84,13 +92,6 @@ physicalDiscomfort = Scenario(
     }
 )
 
-sleepProblem = Scenario(
-    intent='수면문제호소',
-    api=DiscomfortAnswerer().sleepProblem_check_form,
-    emotion_answerer=answerer,
-    scenario={
-    }
-)
 
 moveHelp = Scenario(
     intent='이동도움요구',
@@ -101,6 +102,7 @@ moveHelp = Scenario(
     }
 )
 
+'''
 changePosture = Scenario(
     intent='자세변경요구',
     api=DiscomfortAnswerer().changePosture_check_form,
@@ -124,7 +126,17 @@ otherAct = Scenario(
     scenario={
     }
 )
+'''
 
+environmentalDiscomfort = Scenario(
+    intent='환경불편호소',
+    api=DiscomfortAnswerer().environmentalDiscomfort_check_form,
+    emotion_answerer=answerer,
+    scenario={
+    }
+)
+
+'''
 environmentalDiscomfort = Scenario(
     intent='환경불편호소',
     api=DiscomfortAnswerer().environmentalDiscomfort_check_form,
@@ -134,9 +146,9 @@ environmentalDiscomfort = Scenario(
     }
 )
 
-expressDesire = Scenario(
-    intent='욕구표출',
-    api=DiscomfortAnswerer().expressDesire_check_form,
+sleepProblem = Scenario(
+    intent='수면문제호소',
+    api=DiscomfortAnswerer().sleepProblem_check_form,
     emotion_answerer=answerer,
     scenario={
     }
@@ -150,6 +162,7 @@ foodDiscomfort = Scenario(
         'FOOD': []
     }
 )
+'''
 
 sentimentDiscomfort = Scenario(
     intent='마음상태호소',
