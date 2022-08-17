@@ -14,7 +14,7 @@ class WeatherAnswerer(BaseAnswerer):
         """
 
         msg = ['','']
-        msg[0] = self.weather_init.format(location=location)
+        msg[0] = str(self.weather_init.format(location=location) + '\n')
         msg[1] = '{date} {location}지역은 섭씨 {temperature}도이며, {comparison}. {weather}' \
             .format(date=date, location=location,
                     temperature=result['temperature'],
@@ -34,7 +34,7 @@ class WeatherAnswerer(BaseAnswerer):
         """
 
         msg = ['', '']
-        msg[0] = self.weather_init.format(location=location)
+        msg[0] = str(self.weather_init.format(location=location) + '\n')
         msg[1] = '{date} {location}지역은 섭씨 {temperature}도이며, {weather}' \
             .format(date=date, location=location,
                     temperature=result['temperature'],
@@ -54,7 +54,7 @@ class WeatherAnswerer(BaseAnswerer):
         """
 
         msg = ['', '']
-        msg[0] = self.weather_init.format(location=location)
+        msg[0] = str(self.weather_init.format(location=location) + '\n')
         msg[1] = '{date} {location}지역은 오전에{j1} 섭씨 {t1}도이며, {w1} ' \
                '오후에{j2} 섭씨 {t2}도이며, {w2}' \
             .format(date=date, location=location,
