@@ -40,13 +40,12 @@ sentimentDiscomfort
 -MONEY
 """
 
-from answerer.dust import DustCrawler
-from answerer.weather import WeatherCrawler
+from answerer.curious_answerer.dust import DustCrawler
+from answerer.curious_answerer.weather import WeatherCrawler
+from answerer.curious_answerer.time_answerer import TimeAnswerer
 from scenarios.scenario import Scenario
-from kocrawl.map import MapCrawler
 from answerer.discomfort_answerer import DiscomfortAnswerer
 #from answerer.emotion_answerer import EmotionAnswerer
-import emotionchat_config as config
 
 
 #answerer = EmotionAnswerer()
@@ -67,6 +66,30 @@ dust = Scenario(
     scenario={
         'LOCATION': [],
         'DATE': ['오늘']
+    }
+)
+
+time = Scenario(
+    intent='time',
+    api=TimeAnswerer().now_time_form,
+    scenario={
+        'DATE': ['오늘']
+    }
+)
+
+date = Scenario(
+    intent='date',
+    api=TimeAnswerer().now_date_form,
+    scenario={
+        'DATE': ['']
+    }
+)
+
+weekday = Scenario(
+    intent='weekday',
+    api=TimeAnswerer().now_weekday_form,
+    scenario={
+        'DATE': ['']
     }
 )
 

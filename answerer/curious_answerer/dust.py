@@ -1,4 +1,4 @@
-from answerer.dust_answerer import DustAnswerer
+from answerer.curious_answerer.dust_answerer import DustAnswerer
 from answerer.base import BaseCrawler
 from editor.dust_editor import DustEditor
 from searcher.dust_searcher import DustSearcher

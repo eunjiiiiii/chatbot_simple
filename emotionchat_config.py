@@ -102,7 +102,7 @@ ANSWER = {
 }
 
 SORT_INTENT = {
-    'QURIOUS': ['weather', 'dust', 'restaurant', 'travel'],
+    'QURIOUS': ['weather', 'dust', 'time', 'date', 'weekday'],
     'PHISICALDISCOMFORT' : ['활동요구','환경불편호소','신체불편호소'],
     'PHISICALDISCOMFORTnQURIOUS': ['활동요구','환경불편호소','신체불편호소',
                     'weather', 'dust', 'restaurant', 'travel', '궁금함'],

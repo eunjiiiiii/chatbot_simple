@@ -59,13 +59,24 @@ class ScenarioManager:
 
         if result_dict['intent'] == '궁금함':
             # 현재 대화가 궁금함 대화일 경우
-            print('(system msg) intent 궁금함 들어옴')
-            prep = self.dataset.load_predict(text, self.embed_processor)
-            intent = self.intent_classifier.predict(prep, calibrate=False)
-            entity = self.entity_recognizer.predict(prep)
-            print('(system msg) intent : ' + str(intent))
-            result_dict['intent'] = intent  # 궁금함_dust
-            result_dict['entity'] = entity
+
+            if '몇시' in ''.join(result_dict['input']):
+                result_dict['intent'] = 'time'
+                result_dict['entity'] = []
+            elif '날짜' in ''.join(result_dict['input']) or '며칠' in ''.join(result_dict['input']) or '몇일' in ''.join(result_dict['input']):
+                result_dict['intent'] = 'date'
+                #result_dict['entity'] = []
+            elif '요일' in ''.join(result_dict['input']):
+                result_dict['intent'] = 'weekday'
+                #result_dict['entity'] = []
+
+            else:
+                prep = self.dataset.load_predict(text, self.embed_processor)
+                intent = self.intent_classifier.predict(prep, calibrate=False)
+                entity = self.entity_recognizer.predict(prep)
+                print('(system msg) intent : ' + str(intent))
+                result_dict['intent'] = intent  # 궁금함_dust
+                result_dict['entity'] = entity
 
 
         for scenario in self.scenarios:

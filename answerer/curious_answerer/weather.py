@@ -1,4 +1,4 @@
-from answerer.weather_answerer import WeatherAnswerer
+from answerer.curious_answerer.weather_answerer import WeatherAnswerer
 from answerer.base import BaseCrawler
 from editor.weather_editor import WeatherEditor
 from searcher.weather_searcher import WeatherSearcher

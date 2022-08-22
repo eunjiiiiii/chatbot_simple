@@ -4,7 +4,7 @@ from model.emotion.predict import IAI_EMOTION
 from model.topic.predict import IAI_TOPIC
 from model.intent_entity.intent_entity import JointIntEnt
 from model.textgeneration.predict import DialogKoGPT2
-from scenarios.default_scenario import dust, weather, requestAct, physicalDiscomfort, environmentalDiscomfort, sentimentDiscomfort
+from scenarios.default_scenario import dust, weather, time, date, weekday, requestAct, physicalDiscomfort, environmentalDiscomfort, sentimentDiscomfort
 #from answerer.emotion_answerer import EmotionAnswerer
 from model.proc import DistanceClassifier, GensimEmbedder, EntityRecognizer
 from data.dataset import Dataset
@@ -66,7 +66,7 @@ class EmotionChat:
                                                   intent_classifier=(clf, False),
                                                   entity_recognizer=(rcn, False))
 
-        self.scenarios = [weather, dust,
+        self.scenarios = [weather, dust, time, date, weekday,
                           physicalDiscomfort,
                           requestAct,
                           environmentalDiscomfort,
@@ -306,6 +306,8 @@ class EmotionChat:
                     e = 'place'
                 elif result == '음식':
                     e = 'food'
+                elif result == '시간':
+                    e = 'date'
             result_entity.append(e)
 
         return result_entity

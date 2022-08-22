@@ -122,3 +122,17 @@ print(re.sub('[은는이가을를]', '', t))
 list = [None]
 print(list[0])
 '''
+'''
+from datetime import datetime
+
+now = datetime.now()
+
+print(type(now.year))
+'''
+
+inputs = '지금 몇시야?'
+print(''.join(inputs))
+if '몇시' in ''.join(inputs):
+    print('시간')
+else:
+    print('error')
