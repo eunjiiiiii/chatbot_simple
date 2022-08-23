@@ -167,5 +167,5 @@ class ScenarioManager:
                 return scenario.apply_greet(pre_result_dict, result_dict)
             # (욕구표출일 때)
             else:
-                return scenario.apply_unk(pre_result_dict, result_dict)  # apply_unk() 생성 예정
+                return scenario.apply_unk(pre_result_dict, result_dict)
 

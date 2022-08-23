@@ -109,9 +109,9 @@ class EmotionChat:
                 config.SORT_INTENT['PHISICALDISCOMFORTnQURIOUS'] + config.SORT_INTENT['SENTIMENTDISCOMFORT']):
             # 이전 단계가 불편함, 마음상태호소, 궁금함 X -> 인텐트 인식
             intent, entity_ = self.intent_entity_classifier(text)
-        elif 'REQUIRE_' in pre_state:
-            _, entity_ = self.intent_entity_classifier(text)
-            intent = pre_intent
+        #elif 'REQUIRE_' in pre_state: # 있어야 하나?
+        #    _, entity_ = self.intent_entity_classifier(text)
+        #    intent = pre_intent
         elif '/check_uc' in pre_pred_phases:
             # 이전 단계의 예상 단계에 /check_uc (재질의) 가 있을 경우 = 현재 예상 단계가 재질의일 경우
             intent, entity_ = self.intent_entity_classifier(text)

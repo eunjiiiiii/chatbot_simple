@@ -311,7 +311,7 @@ class Scenario:
         # result_dict default form setting
         self.set_default_result_dict(pre_result_dict, result_dict)
 
-        if result_dict['intent_turn_cnt'] >= 1:
+        if result_dict['intent_turn_cnt'] >= 2:
 
             result_dict['state'] = 'over_turn_2'
             result_dict['answer'] = config.ANSWER['default_error_end']
@@ -326,7 +326,7 @@ class Scenario:
             result_dict['next_phase'] = ['/unk', '/recognize_uc_chat', '/recognize_emotion_chat',
                                          '/recognize_uc',
                                          '/recognize_emotion', '/recognize_topic', '/generate_emotion_chat',
-                                         '/check_ucs',
+                                         '/check_uc', '/induct_emotion',
                                          '/fill_slot', '/end_phase']
 
         return result_dict
