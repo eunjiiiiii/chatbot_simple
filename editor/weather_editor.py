@@ -1,4 +1,4 @@
-from kocrawl.editor.base_editor import BaseEditor
+from editor.base_editor import BaseEditor
 import re
 
 
@@ -12,13 +12,19 @@ class WeatherEditor(BaseEditor):
         :return: 수정된 딕셔너리
         """
 
-        weather = self.weather[result['today_weather'].split(',')[0].strip()]
-        comparison = result['today_weather'].split(',')[1].strip()
+        weather = result['today_weather']
+        #comparison = result['today_weather'].split(',')[1].strip()
         temperature = result['today_temperature']
+        temperature_feel = result['today_temperature_feel'].replace('°','')
+        humidity = result['today_humidity']
+        wind = result['today_wind']
 
         result = {'weather': weather,
-                  'comparison': comparison,
-                  'temperature': temperature}
+                  #'comparison': comparison,
+                  'temperature': temperature,
+                  'temperature_feel': temperature_feel,
+                  'humidity': humidity,
+                  'wind': wind}
 
         return result
 

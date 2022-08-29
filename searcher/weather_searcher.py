@@ -1,4 +1,4 @@
-from kocrawl.searcher.base_searcher import BaseSearcher
+from searcher.base_searcher import BaseSearcher
 import re
 
 
@@ -7,26 +7,38 @@ class WeatherSearcher(BaseSearcher):
     def __init__(self):
         self.CSS = {
             # 검색에 사용할 CSS 셀렉터들을 정의합니다.
-            'naver_weather': '.info_data > .info_list > li > .cast_txt',
-            'naver_temperature': '.info_temperature > .todaytemp',
+            'naver_weather': 'div.weather_info > div > div._today > div.weather_graphic > div.weather_main > i > span.blind',
+            # '.weather_info > ._today > .weather_main > span.blind',
+            #  div.weather_info > div > div._today > div.weather_graphic > div.weather_main > i > span
+            #'naver_temperature_compare': 'div.weather_info > div > div._today > div.temperature_info > p.summary > span.temperature down',
+            'naver_temperature': 'div.weather_info > div > div._today > div.weather_graphic > div.temperature_text > strong',
+            'naver_temperature_feel': 'div.weather_info > div > div._today > div.temperature_info > dl > dd.desc',
+            # '.temperature_text > span.blind',
+            # #main_pack > section.sc_new.cs_weather_new._cs_weather > div._tab_flicking > div.content_wrap > div.open > div:nth-child(1) > div > div.weather_info > div > div._today > div.weather_graphic > div.temperature_text > strong > span.blind
+            # //*[@id="main_pack"]/section[1]/div[1]/div[2]/div[1]/div[1]/div/div[2]/div/div[1]/div[1]/div[2]/strong/text()
+            # /html/body/div[3]/div[2]/div/div[1]/section[1]/div[1]/div[2]/div[1]/div[1]/div/div[2]/div/div[1]/div[1]/div[2]/strong/text()
             'google_weather': '#wob_dcp > #wob_dc',
             'google_temperature': '#wob_tm'
         }
 
         self.data_dict = {
             # 데이터를 담을 딕셔너리 구조를 정의합니다.
-            'today_weather': None,
-            'tomorrow_morning_weather': None,
-            'tomorrow_afternoon_weather': None,
-            'after_morning_weather': None,
-            'after_afternoon_weather': None,
-            'specific_weather': None,
-            'today_temperature': None,
-            'tomorrow_morning_temperature': None,
-            'tomorrow_afternoon_temperature': None,
-            'after_morning_temperature': None,
-            'after_afternoon_temperature': None,
-            'specific_temperature': None,
+            'today_weather': None,  # '맑음,어제보다 1'낮아요'
+            #'today_temperature_compare': None,  # '어제보다 1'낮아요'
+            #'tomorrow_morning_weather': None,   # '흐리고가끔비'
+            #'tomorrow_afternoon_weather': None, # '구름많음'
+            #'after_morning_weather': None,  # '구름많음'
+            #'after_afternoon_weather': None,    # '맑음'
+            #'specific_weather': None,
+            'today_temperature': None,  # '21',
+            'today_temperature_feel': None, # '22.5'',
+            'today_humidity': None, #'75%'
+            'today_wind': None, # 1.7m/s
+            #'tomorrow_morning_temperature': None,   # '20'
+            #'tomorrow_afternoon_temperature': None, # '25'
+            #'after_morning_temperature': None,  # '21'
+           # 'after_afternoon_temperature': None,    # '29'
+           # 'specific_temperature': None,
         }
 
     def _make_query(self, location: str, date: str) -> str:
@@ -51,7 +63,9 @@ class WeatherSearcher(BaseSearcher):
         query = self._make_query('오늘', location)  # 한번 서치에 전부 가져옴
         result = self._bs4_contents(self.url['naver'],
                                     selectors=[self.CSS['naver_weather'],
-                                               self.CSS['naver_temperature']],
+                                               #self.CSS['naver_temperature_compare'],
+                                               self.CSS['naver_temperature'],
+                                               self.CSS['naver_temperature_feel']],
                                     query=query)
 
         i = 0

@@ -71,7 +71,7 @@ class WeatherCrawler(BaseCrawler):
 
         result_dict = WeatherSearcher().naver_search(location)
         result = WeatherEditor().edit_today(result_dict)
-        return WeatherAnswerer().comparison_with_yesterday_form(location, "오늘", result), result_dict
+        return WeatherAnswerer().specific_date_form(location, "오늘", result), result_dict
 
     def __tomorrow(self, location: str) -> tuple:
         """

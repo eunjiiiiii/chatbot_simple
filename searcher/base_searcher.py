@@ -48,7 +48,10 @@ class BaseSearcher(BaseCrawler, metaclass=ABCMeta):
             crawled = []
             for selector in selectors:
                 for s in out.select(selector):
-                    crawled.append(s.contents)
+                    if len(s.contents) > 1:
+                        crawled.append([s.contents[1]])
+                    else:
+                        crawled.append(s.contents)
             return crawled
         except Exception:
             return None

@@ -76,8 +76,8 @@ EDIT = {
 }
 
 ANSWER = {
-    'dust_init': '{location}의 다양한 대기오염 정보를 전해드릴게요. 😀\n',
-    'weather_init': '{location}의 날씨 정보를 전해드릴게요. 😉\n',
-    'map_init': '{location}의 {place}에 대한 정보를 전해드릴게요!. 😀😀\n',
+    'dust_init': '{location}의 다양한 대기오염 정보를 전해드릴게요.',
+    'weather_init': '{location}의 날씨 정보를 전해드릴게요.',
+    'map_init': '{location}의 {place}에 대한 정보를 전해드릴게요!.',
     'fallback': "죄송해요.. 말씀하신 정보는 저도 잘 모르겠네요."
 }

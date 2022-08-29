@@ -33,12 +33,14 @@ class WeatherAnswerer(BaseAnswerer):
         :return: 출력 메시지
         """
 
-        msg = ['', '']
-        msg[0] = str(self.weather_init.format(location=location) + '\n')
-        msg[1] = '{date} {location}지역은 섭씨 {temperature}도이며, {weather}' \
+        msg = ['']*4
+        msg[0] = str(self.weather_init.format(location=location))
+        msg[1] = '{date} {location}지역은 섭씨 {temperature}도이며, {weather}이에요.' \
             .format(date=date, location=location,
                     temperature=result['temperature'],
                     weather=result['weather'])
+        msg[2] = '체감상 기온은 {temperature_feel}도 이며, 습도는 {humidity}이에요.'.format(temperature_feel=result['temperature_feel'], humidity=result['humidity'])
+        msg[3] = '풍속은 {wind} 이에요.'.format(wind=result['wind'])
 
         return msg
 

@@ -1,4 +1,4 @@
-from kocrawl.searcher.base_searcher import BaseSearcher
+from searcher.base_searcher import BaseSearcher
 import re
 
 
