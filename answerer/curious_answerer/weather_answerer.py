@@ -13,7 +13,7 @@ class WeatherAnswerer(BaseAnswerer):
         :return: 출력 메시지
         """
 
-        msg = ['','']
+        msg = ['', '']
         msg[0] = str(self.weather_init.format(location=location) + '\n')
         msg[1] = '{date} {location}지역은 섭씨 {temperature}도이며, {comparison}. {weather}' \
             .format(date=date, location=location,

@@ -45,12 +45,14 @@ class TimeAnswerer:
         """
         now = datetime.now()
 
+        date = date.replace('은는이가을를','')
+
         msg = ['']
-        if date in ['오늘', '오늘은', '현재']:
+        if any(x in date for x in ['오늘', '현재', '지금']):
             msg[0] = '오늘은 {year}년 {month}월 {day}일 입니다.'.format(year=now.year, month=now.month, day=now.day)
-        elif '어제' in date:
+        elif any(x in date for x in ['어제', '어저께', '하루전','전날']):
             msg[0] = '어제는 {year}년 {month}월 {day}일 이었어요.'.format(year=now.year, month=now.month, day=int(now.day-1))
-        elif '그제' in date or '그저께' in date:
+        elif any(x in date for x in ['그제', '그저께', '이틀전']):
             msg[0] = '그저께는 {year}년 {month}월 {day}일 이었어요.'.format(year=now.year, month=now.month, day=int(now.day - 2))
         else:
             msg[0] = '그 날짜는 알수가 없어요.'
