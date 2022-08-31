@@ -87,6 +87,7 @@ if __name__ == '__main__':
 
         # turn_cnt 1 증가
         turn_cnt += 1
+        intent_turn_cnt = result_dict['intent_turn_cnt']
 
         print("**************\n\n")
 
