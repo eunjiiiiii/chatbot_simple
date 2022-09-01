@@ -46,7 +46,7 @@ if __name__ == '__main__':
         'topics': [],
         'topic_prob': [],
         'answer': '',
-        'previous_phase': [],
+        'previous_phase': '',
         'current_phase': '',
         'next_phase': [],
         'intent_turn_cnt': intent_turn_cnt

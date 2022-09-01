@@ -320,17 +320,17 @@ class EmotionChat:
         :return: 감정, 주제 라벨 값(str)
         """
         if emotion_label == 0:
-            emotion = '평온함'
-        elif emotion_label == 1:
-            emotion = '분노'
-        elif emotion_label == 2:
             emotion = '놀람'
-        elif emotion_label == 3:
+        elif emotion_label == 1:
             emotion = '기쁨'
-        elif emotion_label == 4:
+        elif emotion_label == 2:
+            emotion = '분노'
+        elif emotion_label == 3:
             emotion = '불안'
-        elif emotion_label == 5:
+        elif emotion_label == 4:
             emotion = '슬픔'
+        elif emotion_label == 5:
+            emotion = '평온함(신뢰)'
 
         if topic_label == 0:
             topic = '건강'
