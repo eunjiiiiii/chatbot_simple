@@ -13,9 +13,6 @@ root_dir = os.path.abspath(os.curdir)
 _ = '\\' if platform.system() == 'Windows' else '/'
 if root_dir[len(root_dir) - 1] != _: root_dir += _
 
-human_name = 'DD'
-bot_name = '마음결'
-
 """
     phase명 정리
     '/welcomemsg_chat': 인사,
@@ -74,8 +71,8 @@ API = {
 
 ANSWER = {
     # 고정된 만남 안내 메세지
-    'welcomemsg_chat' : ['안녕하세요. 저는 {HUMAN_NAME}님의 \n심리 상담을 도와드릴 {BOT_NAME} 입니다.\n'.format(HUMAN_NAME=human_name, BOT_NAME=bot_name),
-                        '상담 시작 전, 스피커 음량을 확인해 주세요.\n{BOT_NAME}이 문자와 소리 모두 제공합니다.\n'.format(BOT_NAME=bot_name),
+    'welcomemsg_chat' : ['안녕하세요. 저는 심리 상담을 도와드릴 마음결입니다.\n',
+                        '상담 시작 전, 스피커 음량을 확인해 주세요.\n 마음결이 문자와 소리 모두 제공합니다.\n',
                          '답변은 음성과 텍스트 모두 사용하실 수 있어요.\n',
                          '자 이제 심리상담을 시작할게요. \n오늘 기분이나 마음이 어떠세요?\n[말하기] 버튼을 터치하시면 말씀하실 수 있어요.\n'],
     # 간병인 호출
@@ -89,7 +86,7 @@ ANSWER = {
     'default_error_end_n': ['그러시군요. 또 기분이 안 좋아지면 언제든 저에게 이야기해주세요\n'],
     'default_error_end_p': ['그러시군요. 또 기분 좋은 일 생기시면 언제든 저에게 이야기 들려주세요\n'],
     'default_error_end': ['다음에 또 불러서 이야기 들려주세요.\n'],
-    'default_contents': ['{HUMAN_NAME}님의 심리 상태를 이해했습니다\n마음을 다스릴 수 있는 좋은 글과 소리를\n제공해 드릴게요.\n'.format(HUMAN_NAME=human_name),
+    'default_contents': ['심리 상태를 이해했습니다\n마음을 다스릴 수 있는 좋은 글과 소리를\n제공해 드릴게요.\n',
              '이거 보시고 마음이 좀 나아지셨으면 좋겠어요. \n이제 상담을 마무리 할 시간이네요.\n',
              '이만 작별인사 드릴게요. 다음에 또 이야기 들려주세요^^\n'],
     'default_check_emotion': ['그러시군요. 혹시 더 마음 쓰이는 일은 없으셨을까요?\n'],
@@ -111,13 +108,13 @@ SORT_INTENT = {
 
 PRED_PHASE = {
     '/welcomemsg_chat': ['/other_user', '/recognize_uc_chat', '/recognize_emotion_chat', '/recognize_uc', '/recognize_emotion', '/recognize_topic', '/generate_emotion_chat', '/check_uc',
-                        '/fill_slot', '/end_phase'],  # ok
+                        '/fill_slot', '/end_phase'],
     '/other_user': ['/induce_ucs', '/recongnize_uc_chat', '/recongnize_emotion_chat',
                    '/recognize_uc', '/recognize_emotion', '/recognize_topic',
                     '/end_phase', '/generate_emotion_chat', '/recommend_contents', '/end_phase'],
-    '/fill_slot': ['/fill_slot', '/recognize_uc', '/check_uc','/check_uc_positive', '/check_uc_negative'],   # ok
+    '/fill_slot': ['/fill_slot', '/recognize_uc', '/check_uc','/check_uc_positive', '/check_uc_negative'],
     '/recognize_uc': ['/check_uc', '/fill_slot', '/recognize_uc', '/check_uc_positive', '/check_uc_negative',
-                      '/check_uc', '/end_phase'],  # ok
+                      '/check_uc', '/end_phase'],
     '/generate_emotion_chat': ['/generate_emotion_chat', '/end_phase', '/recognize_emotion_chat',
                             '/recommend_contents', '/end_phase'],
     '/check_uc': ['/check_uc_positive', '/check_uc_negative', '/check_uc', '/end_phase'],
@@ -126,18 +123,6 @@ PRED_PHASE = {
     '/end_phase': ['/end_phase']
 }
 
-STATE = ['SUCCESS', 'FAIL', # 엔티티, 감정 인식에 성공
-         'REQUIRE_EMOTION', # 여태까지 확실한 감정이 안나왔을 경우
-         'REQUIRE_ENTITY',  # 여태까지 default_scenario에 있는 필수 엔티티를 채우지 않았을 경우
-         'SUDDEN_GOODBYE',  # 갑자기 인텐트 작별인사가 뜬 경우
-         'OVER_TURN_5', # 전체 turn_cnt>=5 여서 종료되는 경우
-         'FAIL_FILLING_SLOT',   # intent_turn_cnt >=5 인데 엔티티 인식에 실패했을 경우
-         'POSITIVE', 'NEGATIVE',    # 이전 대화 단계가 '/check_uc'인데 현재 인텐트 '긍정', '부정'이 나왔을 경우
-         'UNK', # intent가 UNK로 인식됐을 경우
-         'REQUIRE_CERTAIN_EMOTION'  # 이전에 확실한 감정이 하나 있었는데 intent_turn_cnt <=1 이거나, 마음상태호소 대화이다가 인텐트 부정,긍정으로 나올 경우  
-         'NOT_RECOGNIZE_UC' # 불,궁을 인식하지 않은 상태로 현재 인텐트 '긍정', '부정'이 나왔을 경우,
-         'ERROR_INTENT' # 그 외에 에러처리(인텐트 인식 잘못했을 경우)
-         ]
 
 EMOTION = {
     'threshold': 0.75,
