@@ -25,29 +25,12 @@ class EmotionChat:
         :param entity_recognizer: 궁금함용 엔티티 인식기 객체 or (, 학습여부)
         """
 
-        '''
-        self.pre_result_dict =
-        self.pre_tokens = []
-        self.pre_phase = ''
-        self.pre_pred_phases = ''
-        self.pre_intent = ''
-        self.pre_emotion_prob = 0.0
-        self.pre_topic_prob = 0.0
-        self.pre_emotion = ''
-        self.pre_emotions = []
-        self.pre_topics = []
-        self.intent_turn_cnt = 0
-        self.pre_entity = []
-        '''
-
         self.dataset = Dataset(ood=True)
 
         self.intent_entity_classifier = JointIntEnt("./model/intent_entity/jointbert_demo_model", no_cuda=True)
         self.emotion_recognizer = IAI_EMOTION
         self.topic_recognizer = IAI_TOPIC("./model/topic/model", no_cuda=True)
         self.response_generator = DialogKoGPT2()
-        #self.curious_intent_classifier = DistanceClassifier(model=curious_intent.CNN(self.dataset.intent_dict),
-        #                                                    loss=CenterLoss(self.dataset.intent_dict))
 
         dataset = Dataset(ood=True)
         emb = GensimEmbedder(model=embed.FastText())
@@ -109,9 +92,6 @@ class EmotionChat:
                 config.SORT_INTENT['PHISICALDISCOMFORTnQURIOUS'] + config.SORT_INTENT['SENTIMENTDISCOMFORT']):
             # 이전 단계가 불편함, 마음상태호소, 궁금함 X -> 인텐트 인식
             intent, entity_ = self.intent_entity_classifier(text)
-        #elif 'REQUIRE_' in pre_state: # 있어야 하나?
-        #    _, entity_ = self.intent_entity_classifier(text)
-        #    intent = pre_intent
         elif '/check_uc' in pre_pred_phases:
             # 이전 단계의 예상 단계에 /check_uc (재질의) 가 있을 경우 = 현재 예상 단계가 재질의일 경우
             intent, entity_ = self.intent_entity_classifier(text)
@@ -175,7 +155,6 @@ class EmotionChat:
 
         elif intent == '작별인사' or "잘있어" in text or "다음에" in text or "잘가" in text:
             # 작별인사일 경우
-            print("(system msg) 작별인사")
             return {
                 'input': tokens + pre_tokens,
                 'intent': '',
@@ -195,10 +174,6 @@ class EmotionChat:
                 'intent_turn_cnt': intent_turn_cnt
             }
 
-        ## 현재 인텐트 출력
-        print("(system msg) 현재 인텐트 :" + intent)
-
-
         '''
         시나리오에 적용
         '''
@@ -207,13 +182,6 @@ class EmotionChat:
         # 5. 엔티티 앞에 I-, B- 제외
 
         entity = self._edit_entity(entity_)
-        print("(system msg) 엔티티 : " + str(entity))
-
-        # tokens(토큰화 된 입력 text)
-        print("(system msg) tokens : " + str(tokens))
-        # print("(system msg) tokens : " + str(tokens))
-        print("(system msg) tokens + 이전 텍스트 : " + str(tokens + pre_tokens))
-
 
         # 6. 감정, 주제 라벨 & 확률값 받기
         if intent not in ['인사','작별인사']:

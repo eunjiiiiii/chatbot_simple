@@ -16,9 +16,7 @@ import inspect
 from collections import Callable
 from copy import deepcopy
 from random import randint
-import decorators.data as data
 import emotionchat_config as config
-#from answerer.emotion_answerer import EmotionAnswerer
 from answerer.discomfort_answerer import DiscomfortAnswerer
 import re
 
@@ -36,14 +34,9 @@ class Scenario:
         self.scenario, self.default = \
             self.__make_empty_dict(scenario)
 
-
         self.api, self.dict_keys, self.params = \
             self.__check_api(api)
 
-
-        #self.emotion_answerer = emotion_answerer
-
-        # self.emotion_answerer = EmotionAnswerer()
 
     def __check_api(self, api):
 
@@ -193,9 +186,6 @@ class Scenario:
         result = self.__check_entity(result_dict['entity'], result_dict['input'], scenario)
         result = self.__set_default(result)
         required_entity = [k for k, v in result.items() if len(v) == 0]  # 필요한 엔티티 종류
-
-        print("(system msg) pre_entity : " + str(pre_result_dict['entity']))
-        print("(system msg) required_entity : " + str(required_entity))
 
         # result_dict default form setting
         self.set_default_result_dict(pre_result_dict, result_dict)
