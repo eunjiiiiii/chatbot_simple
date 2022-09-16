@@ -1,0 +1,1 @@
+from model.T2F.text2face import Text2Face

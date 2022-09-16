@@ -1,0 +1,2 @@
+model_checkpoint_path: "G:/logdir-tacotron2/220718\\kss-orig-npy+kss-shk-npy+son-orig-npy_2022-07-18_16-44-59\\model.ckpt-100000"
+all_model_checkpoint_paths: "G:/logdir-tacotron2/220718\\kss-orig-npy+kss-shk-npy+son-orig-npy_2022-07-18_16-44-59\\model.ckpt-100000"
