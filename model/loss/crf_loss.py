@@ -1,6 +1,6 @@
 from torch import Tensor
 from torch import nn
-from TorchCRF import CRF
+from torchcrf import CRF
 
 from decorators.decorators import entity
 from model.loss.base_loss import BaseLoss

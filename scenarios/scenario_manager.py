@@ -57,6 +57,7 @@ class ScenarioManager:
 
     def apply_scenario(self, pre_result_dict, result_dict, text, c_ucs, turn_cnt):
 
+        # 1. 궁금함 분류
         if result_dict['intent'] == '궁금함':
             # 현재 대화가 궁금함 대화일 경우
 
@@ -74,11 +75,11 @@ class ScenarioManager:
                 prep = self.dataset.load_predict(text, self.embed_processor)
                 intent = self.intent_classifier.predict(prep, calibrate=False)
                 entity = self.entity_recognizer.predict(prep)
-                print('(system msg) intent : ' + str(intent))
                 result_dict['intent'] = intent  # 궁금함_dust
                 result_dict['entity'] = entity
 
 
+        # 2. default 시나리오 찾기
         for scenario in self.scenarios:
             # default_scenario 에 있는 경우 default_scenario를 기본적으로 따르도록
             if c_ucs:
@@ -108,10 +109,8 @@ class ScenarioManager:
                 elif (scenario.intent == pre_result_dict['intent']) and (pre_result_dict['intent'] in config.SORT_INTENT['QURIOUS']):
                     # 이전 단계에서 궁금함 대화였으면
                     prep = self.dataset.load_predict(text, self.embed_processor)
-                    #intent = self.intent_classifier.predict(prep, calibrate=False)
                     entity = self.entity_recognizer.predict(prep)
-                    #print('(system msg) intent : ' + str(intent))
-                    #result_dict['intent'] = intent    # 궁금함_dust
+
                     result_dict['entity'] = entity
                     return scenario.apply(pre_result_dict, result_dict)
 
@@ -122,27 +121,18 @@ class ScenarioManager:
                 else:
                     continue
 
-            ############################# #############################
             else:
                 # 이전 대화에서 불,궁,감 대화에 안들어왔으면
                 # 다른 인텐트 존재 가능
 
-                print('(system msg) scenario.intent ' + scenario.intent)
                 if (scenario.intent == result_dict['intent']) and (result_dict['intent'] in config.SORT_INTENT['QURIOUS']):
                     # 현재 대화가 궁금함 대화일 경우
-                    #prep = self.dataset.load_predict(text, self.embed_processor)
-                    #intent = self.intent_classifier.predict(prep, calibrate=False)
-                    #entity = self.entity_recognizer.predict(prep)
-                    #print('(system msg) intent : ' + str(intent))
-                    #result_dict['intent'] = intent    # 궁금함_dust
-                    #result_dict['entity'] = entity
                     return scenario.apply(pre_result_dict, result_dict)
 
 
                 # (불궁일 때)현재 대화의 scenario의 intent랑 들어온 인텐트가 같으면 default_scenario대로 수행하게
                 elif (scenario.intent == result_dict['intent']) and (result_dict['intent'] in config.SORT_INTENT['PHISICALDISCOMFORT']):
                 # 각 intent 별 시나리오를 demo.scenarios.py에 저장해놨기 때문에 그 시나리오에 기록하면서 사용
-                    print('(system msg) 엔티티 : ' + str(result_dict['entity']))
                     return scenario.apply(pre_result_dict, result_dict)
 
                 # (감정일 때)현재 대화의 scenario의 intent랑 들어온 인텐트가 같으면 감정, 주제 필링 수행
@@ -153,16 +143,15 @@ class ScenarioManager:
                 else:
                     continue
 
-            #############################  #############################
-
         else:
-        # default_scenario에 없는 시나리오 즉, 넋두리(긍정, 부정일 경우에도 여기에 속함)
-            if result_dict['intent'] in ['부정', '긍정']:
-                return scenario.apply_np(pre_result_dict, result_dict)
+        # default_scenario에 없는 시나리오
+
             # (인사일 때)
-            elif result_dict['intent'] == '인사':
+            if result_dict['intent'] == '인사':
                 # 각 intent 별 시나리오를 demo.scenarios.py에 저장해놨기 때문에 그 시나리오에 기록하면서 사용
                 return scenario.apply_greet(pre_result_dict, result_dict)
+            elif result_dict['intent'] in config.SORT_INTENT['QURIOUS']:
+                return scenario.apply_fallback(pre_result_dict, result_dict)
             # (욕구표출일 때)
             else:
                 return scenario.apply_unk(pre_result_dict, result_dict)

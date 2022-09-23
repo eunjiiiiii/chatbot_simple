@@ -3,15 +3,12 @@ import emotionchat_config as config
 from model.emotion.predict import IAI_EMOTION
 from model.topic.predict import IAI_TOPIC
 from model.intent_entity.intent_entity import JointIntEnt
-from model.textgeneration.predict import DialogKoGPT2
 from scenarios.default_scenario import dust, weather, time, date, weekday, requestAct, physicalDiscomfort, environmentalDiscomfort, sentimentDiscomfort
-#from answerer.emotion_answerer import EmotionAnswerer
 from model.proc import DistanceClassifier, GensimEmbedder, EntityRecognizer
 from data.dataset import Dataset
 from model import curious_intent, embed, curious_entity
 from model.loss import CenterLoss, CRFLoss
 
-from scenarios.scenario import Scenario
 
 class EmotionChat:
 
@@ -30,7 +27,6 @@ class EmotionChat:
         self.intent_entity_classifier = JointIntEnt("./model/intent_entity/jointbert_demo_model", no_cuda=True)
         self.emotion_recognizer = IAI_EMOTION
         self.topic_recognizer = IAI_TOPIC("./model/topic/model", no_cuda=True)
-        self.response_generator = DialogKoGPT2()
 
         dataset = Dataset(ood=True)
         emb = GensimEmbedder(model=embed.FastText())
@@ -58,6 +54,10 @@ class EmotionChat:
         for scenario in self.scenarios:
             self.scenario_manager.add_scenario(scenario)
 
+        self.emotion_to_pce = {key: idx+1
+                               for idx, key in enumerate(['분노','슬픔','불안','놀람','기쁨','평온함(신뢰)'])}
+        self.topic_to_pce = {key: idx + 1 for idx, key in enumerate(['건강','사회환경','정서인지','경제'])}
+
     def run(self, text: str, wav_file, pre_result_dict: dict, turn_cnts: dict) -> dict:
         """
         인텐트 인식 후 단계 확인 후 시나리오에 적용해주는 함수
@@ -76,22 +76,21 @@ class EmotionChat:
         pre_intent = pre_result_dict['intent'] # 이전 단계 인텐트
         pre_emotion_prob = pre_result_dict['emotion_prob'] # 이전 단계까지의 누적 감정 확률 리스트
         pre_topic_prob = pre_result_dict['topic_prob'] # 이전 단계까지의 누적 주제 확률 리스트
-        pre_emotion = pre_result_dict['emotion']   # 문자열 형태의 이전 단계까지의 확실한 감정
         pre_emotions = pre_result_dict['emotions'] # 이전 단계까지의 누적 감정 리스트
         pre_topics = pre_result_dict['topics'] # 이전 단계까지의 누적 주제 리스트
         intent_turn_cnt = pre_result_dict['intent_turn_cnt']   # 이전 단계까지 이전 단계와 같은 인텐트 턴 횟수
-        pre_entity = pre_result_dict['entity'] # 이전 entity 누적 리스트
-        pre_state = pre_result_dict['state']    # 이전 상태
         turn_cnt = turn_cnts['turn_cnt']
 
 
 
         # 1. 불편함/궁금함 인식 ,감정인식/주제인식 일 경우 intent 인식하지 않음
         c_ucs = True    # 이전 단계에서 불,궁,감 대화에 들어왔는가?
-        if pre_phase == '' and pre_intent not in (
+        if pre_phase != '' and pre_intent not in (
                 config.SORT_INTENT['PHISICALDISCOMFORTnQURIOUS'] + config.SORT_INTENT['SENTIMENTDISCOMFORT']):
+
             # 이전 단계가 불편함, 마음상태호소, 궁금함 X -> 인텐트 인식
             intent, entity_ = self.intent_entity_classifier(text)
+            c_ucs = False
         elif '/check_uc' in pre_pred_phases:
             # 이전 단계의 예상 단계에 /check_uc (재질의) 가 있을 경우 = 현재 예상 단계가 재질의일 경우
             intent, entity_ = self.intent_entity_classifier(text)
@@ -99,7 +98,7 @@ class EmotionChat:
             c_ucs = False
         elif pre_phase == '':
             # 인사
-            intent, _ = self.intent_entity_classifier(text)
+            intent = '인사'
             c_ucs = False
         else:
             # 이전 단계가 불편함, 마음상태호소, 궁금함 O -> 인텐트 인식 X
@@ -119,15 +118,12 @@ class EmotionChat:
             # 이전 대화의 intent와 현재 대화의 intent가 다르면 intent_turn_cnt 초기화
             intent_turn_cnt = 0
 
-        print("*-" * 50 + "\n" + "(system msg) emotionchat_engine> intent_turn_cnt : " +
-              str(intent_turn_cnt)  + "\n" + "*-" * 50)
-
 
         # 3. inputs -> tokens
         tokens = list(text.split(' '))
 
 
-        # 4. 인사, 작별인사 처리
+        # 4. 인사 처리
 
         if (("안녕" in text) or (intent == '인사')) and pre_phase == '':
             # 첫번째 turn이고, 인사일 경우
@@ -148,36 +144,15 @@ class EmotionChat:
                 'previous_phase': '',
                 'current_phase': '/welcomemsg_chat',
                 'next_phase': ['/other_user', '/recognize_uc_chat', '/recognize_emotion_chat', '/recognize_uc',
-                               '/recognize_emotion', '/recognize_topic', '/generate_emotion_chat', '/check_uc',
+                               '/recognize_emotion', '/recognize_topic', '/induct_emotion', '/generate_emotion_chat', '/check_uc',
                                '/fill_slot', '/end_phase'],
                 'intent_turn_cnt': intent_turn_cnt
             }
 
-        elif intent == '작별인사' or "잘있어" in text or "다음에" in text or "잘가" in text:
-            # 작별인사일 경우
-            return {
-                'input': tokens + pre_tokens,
-                'intent': '',
-                'entity': [],
-                'state': 'SUCCESS',
-                'emotion': '',
-                'emotions': pre_emotions,
-                'emotion_prob': pre_emotion_prob,
-                'emotion_probs': [1., 1., 1., 1., 1., 1.],
-                #'topic': '',
-                'topics': pre_topics,
-                'topic_prob': pre_topic_prob,
-                'answer': config.ANSWER['goodbyemsg_chat'],
-                'previous_phase': ['check_ucs', '/recommend_contents'],
-                'current_phase': '/end_phase',
-                'next_phase': ['/end_phase'],
-                'intent_turn_cnt': intent_turn_cnt
-            }
 
         '''
         시나리오에 적용
         '''
-
 
         # 5. 엔티티 앞에 I-, B- 제외
 
@@ -187,22 +162,14 @@ class EmotionChat:
         if intent not in ['인사','작별인사']:
             emotion_label, emotion_probs_array, max_emotion_prob_array = self.emotion_recognizer().predict(text,
                                                                                                            wav_file)
-            print('(system msg) emotion_probs_array: ' + str(emotion_probs_array[0]))
-            print('(system msg) max_emotion: ' + str(max_emotion_prob_array))
-
             max_emotion_prob = float(max_emotion_prob_array)
             topic_label, topic_probs_array, max_topic_prob_array = self.topic_recognizer.predict(text)
-            print('(system msg) topic_probs_array: ' + str(topic_probs_array[0]))
-            print('(system msg) max_topic: ' + str(max_topic_prob_array))
             max_topic_prob = float(max_topic_prob_array)
-
             emotion, topic = self.__rename_emotion_topic(emotion_label, topic_label)
-            print(
-                "(system msg) 현재 감정 확률 : " + str(emotion) + str(max_emotion_prob) + " ,현재 주제 확률 : " + str(topic) + str(
-                    max_topic_prob))
+
 
         ## scenario_manager() > apply_scenario()로 보내기 위해 result_dict로 변수 묶어놓음
-        if intent in ['인사','작별인사']:
+        if intent == '인사':
             result_dict = {
                 'input': tokens,
                 'intent': intent,
@@ -263,6 +230,7 @@ class EmotionChat:
         :return: 엔티티(영어)
         """
         result_entity = []
+
         for e in entity:
             if '-' in e:
                 result = e.split('-')[1]
@@ -287,29 +255,11 @@ class EmotionChat:
         :param topic_label: 주제 라벨 값(int)
         :return: 감정, 주제 라벨 값(str)
         """
-        if emotion_label == 0:
-            emotion = '놀람'
-        elif emotion_label == 1:
-            emotion = '기쁨'
-        elif emotion_label == 2:
-            emotion = '분노'
-        elif emotion_label == 3:
-            emotion = '불안'
-        elif emotion_label == 4:
-            emotion = '슬픔'
-        elif emotion_label == 5:
-            emotion = '평온함(신뢰)'
 
-        if topic_label == 0:
-            topic = '건강'
-        elif topic_label == 1:
-            topic = '사회환경'
-        elif topic_label == 2:
-            topic = '정서인지'
-        elif topic_label == 3:
-            topic = '경제'
+        emotion_dict = {0: '놀람', 1: '기쁨', 2: '분노', 3: '불안', 4: '슬픔', 5: '평온함(신뢰)'}
+        topic_dict = {0: '건강', 1: '사회환경', 2: '정서인지', 3: '경제'}
 
-        return emotion, topic
+        return emotion_dict[emotion_label], topic_dict[topic_label]
 
     def __check_phase(self, pre_pred_phases: list, current_phase: str):
         """
@@ -356,9 +306,9 @@ class EmotionChat:
             if pre_result_dict['intent'] == '인사' and result_dict['intent_turn_cnt'] <= 1:
                 # 인사 하고 딴소리 하는 경우 -> 1번까지만 봐줌
 
-                print("인사 이후 대화 오류 들어옴")
+                #print("인사 이후 대화 오류 들어옴")
 
-                #return result_dict
+                return result_dict
 
 
             elif result_dict['intent'] == '작별인사':
@@ -421,6 +371,21 @@ class EmotionChat:
 
         self.embed_processor.fit(self.dataset.load_embed())
 
+    def get_pce_id(self, emotion_name: str, topic_name: str, emotion_prob: float):
+        emotion_pce = self.emotion_to_pce[emotion_name]
+        topic_pce = self.topic_to_pce[topic_name]
+        if emotion_prob >= 0.9:
+            strength_pce = 1
+        elif emotion_prob <= 0.75:
+            strength_pce = 2
+        else:
+            strength_pce = 3
+        pce_code = [emotion_pce, topic_pce, strength_pce]
+        pce_code = map(str, pce_code)
+        pce_code = "PCE" + ''.join(pce_code)
+
+        return pce_code
+
 
 def final_emotion(dict_: dict) -> dict:
     """
@@ -465,3 +430,4 @@ def final_emotion(dict_: dict) -> dict:
                 max_topic_prob = topic_prob[1]
 
         return {max_emotion: max_emotion_prob, max_topic: max_topic_prob}
+

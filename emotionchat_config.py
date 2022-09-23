@@ -77,8 +77,6 @@ ANSWER = {
                          '자 이제 심리상담을 시작할게요. \n오늘 기분이나 마음이 어떠세요?\n[말하기] 버튼을 터치하시면 말씀하실 수 있어요.\n'],
     # 간병인 호출
     'call_caregiver': ['간병인 불러드릴게요 \n'],
-    'default_error_other_user': ['넋두리 사절\n'],
-    'fallback': ["죄송해요. 제가 이해하지 못했어요.\n 다시 한 번 말씀해주실래요?\n"],
     'default_error': ['무슨 일 있으신가요?\n'],
     'default_error_uncomfort': ['다른 불편하신 점은 없으신가요?\n'],
     'default_error_curious': ['다른 궁금하신 점은 없으신가요?\n'],
@@ -95,11 +93,12 @@ ANSWER = {
     'default_error_welcomemsg': ['반가워요. 오늘 기분은 어떠세요? 아니면 다른 불편하거나 궁금하신 점이 있으신가요?\n'],
     'default_error_emotion': ['그러시군요. 오늘 기분이 어떠신지 좀 더 구체적으로 말씀해주실 수 있으신가요?\n'],
     'goodbyemsg_unk' : ['무슨 말인지 이해 못했어요.\n', '다음에 다시 불러주세요.\n'],
-    'induct_emotion': ['감정 상태를 조금 더 자세하게 말씀해주세요.\n']
+    'induct_emotion': ['감정 상태를 조금 더 자세하게 말씀해주세요.\n'],
+    'fallback': ["죄송해요.", "말씀하신 정보는 저도 잘 모르겠어요.\n", "다음에 다시 불러주세요.\n"]
 }
 
 SORT_INTENT = {
-    'QURIOUS': ['weather', 'dust', 'time', 'date', 'weekday'],
+    'QURIOUS': ['weather', 'dust', 'time', 'date', 'weekday', 'restaurant', 'travel','FALLBACK'],
     'PHISICALDISCOMFORT' : ['활동요구','환경불편호소','신체불편호소'],
     'PHISICALDISCOMFORTnQURIOUS': ['활동요구','환경불편호소','신체불편호소',
                     'weather', 'dust', 'restaurant', 'travel', '궁금함'],

@@ -249,9 +249,10 @@ class Scenario:
         result_dict['answer'] = config.ANSWER['default_error_welcomemsg']
         result_dict['previous_phase'] = pre_result_dict['current_phase']
         result_dict['current_phase'] = '/welcomemsg_chat'
-        result_dict['next_phase'] = ['/other_user', '/recognize_uc_chat', '/recognize_emotion_chat', '/recognize_uc',
-                               '/recognize_emotion', '/recognize_topic', '/generate_emotion_chat', '/check_uc',
-                               '/fill_slot', '/end_phase']
+        result_dict['next_phase'] = ['/other_user', '/recognize_uc_chat',
+                                     '/recognize_emotion_chat','/induct_emotion','/recognize_uc',
+                               '/recognize_emotion', '/recognize_topic', '/generate_emotion_chat',
+                                '/check_uc', '/fill_slot', '/end_phase']
 
         return result_dict
 
@@ -320,3 +321,23 @@ class Scenario:
                                          '/fill_slot', '/end_phase']
 
         return result_dict
+
+    def apply_fallback(self, pre_result_dict: dict, result_dict: dict) -> dict:
+        """
+        궁금함 대화에서 처리할 수 없는 대화
+        :param pre_result_dict: 이전 단계 result_dict
+        :param result_dict: 다 안채워진 현재 단계 result_dict
+        :return: 다 채워진 시나리오
+        """
+
+        # result_dict default form setting
+        self.set_default_result_dict(pre_result_dict, result_dict)
+
+        result_dict['state'] = 'FALLBACK'
+        result_dict['answer'] = config.ANSWER['fallback']
+        result_dict['previous_phase'] = pre_result_dict['current_phase']
+        result_dict['current_phase'] = '/end_phase'
+        result_dict['next_phase'] = []
+
+        return result_dict
+

@@ -63,8 +63,6 @@ if __name__ == '__main__':
         turn_cnt += 1
         intent_turn_cnt = result_dict['intent_turn_cnt']
 
-        print("**************\n\n")
-
         print("Bot : ")
         for i in range(len(result_dict['answer'])):
             print(result_dict['answer'][i])

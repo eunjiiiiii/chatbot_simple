@@ -33,7 +33,7 @@ class TorchProcessor(BaseProcessor):
         self.device = torch.device(ctx)
 
         super().__init__(model)
-        self.visualizer = Visualizer(self.model_dir, self.model_file)
+        #self.visualizer = Visualizer(self.model_dir, self.model_file)
         self.metrics = Metrics(self.logging_precision)
         self.model = model.to(self.device)
         self.__initialize_weights(self.model)
@@ -73,12 +73,12 @@ class TorchProcessor(BaseProcessor):
         for i in range(self.epochs + 1):
             eta = time()
             loss, label, predict = self._train_epoch(i)
-            self.__visualize(loss, label, predict, mode='train')
+            #self.__visualize(loss, label, predict, mode='train')
             # training epoch + visualization
 
             if test:
                 loss, label, predict = self._test_epoch(i)
-                self.__visualize(loss, label, predict, mode='test')
+                #self.__visualize(loss, label, predict, mode='test')
                 # testing epoch + visualization
 
             if i > self.lr_scheduler_warm_up:
@@ -149,7 +149,7 @@ class TorchProcessor(BaseProcessor):
         # 결과를 시각화하여 출력함
         self.visualizer.draw_matrix(matrix, list(self.label_dict), mode)
         self.visualizer.draw_report(report, mode=mode)
-        self.visualizer.draw_graphs()
+        #self.visualizer.draw_graphs()
 
     @abstractmethod
     def _forward(self, feats: Tensor, labels: Tensor = None, lengths: Tensor = None):
